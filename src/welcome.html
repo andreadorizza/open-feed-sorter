@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sort Feed Better</title>
+    <style>
+      :root { color-scheme: light dark; --fg: #111827; --bg: #fff; --muted: #6b7280; --line: rgba(0,0,0,.12); }
+      @media (prefers-color-scheme: dark) { :root { --fg: #f9fafb; --bg: #0f172a; --muted: #9ca3af; --line: rgba(255,255,255,.14); } }
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 48px 20px; background: var(--bg); color: var(--fg);
+             font: 400 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+      main { max-width: 640px; margin: 0 auto; }
+      h1 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 6px; }
+      .sub { color: var(--muted); margin: 0 0 36px; }
+      ol { padding-left: 20px; }
+      li { margin-bottom: 14px; }
+      h2 { font-size: 16px; margin: 36px 0 10px; }
+      code { background: color-mix(in srgb, currentColor 10%, transparent);
+             padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+      .card { border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-top: 28px; }
+      .card p:last-child { margin-bottom: 0; }
+      footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
+               color: var(--muted); font-size: 14px; }
+      a { color: #6366f1; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Sort Feed Better is installed</h1>
+      <p class="sub">Sort any Instagram or TikTok profile by the numbers the grid doesn't show you.</p>
+
+      <h2>Getting started</h2>
+      <ol>
+        <li>Open an Instagram or TikTok <strong>profile page</strong>.</li>
+        <li>Click the extension icon and pick a sort and how much to collect.</li>
+        <li>Press <strong>Sort this profile</strong>. The tab reloads and scrolls itself while it collects — you can press <strong>Stop</strong> at any point and keep what it has.</li>
+        <li>When it finishes, the grid is re-laid-out newest-best-first with every metric on each tile. Re-sort or export from the toolbar above the grid.</li>
+      </ol>
+
+      <h2>Outlier scores</h2>
+      <p>
+        An outlier score compares a post with the account's own recent median, so
+        <code>3.0x</code> means it did three times the account's normal. Pinned posts and
+        anything under three days old are left out of that median — they'd skew it. Accounts
+        with fewer than 20 eligible posts aren't scored at all.
+      </p>
+
+      <div class="card">
+        <p>
+          <strong>Everything stays on your machine.</strong> There is no account, no telemetry
+          and no backend. The extension reads the same feed responses the page already
+          requested, and exports are generated in the tab.
+        </p>
+      </div>
+
+      <footer>
+        <a href="https://github.com/andreadorizza/sort-feed-better" target="_blank" rel="noopener">Source and issues on GitHub</a>
+      </footer>
+    </main>
+  </body>
+</html>
