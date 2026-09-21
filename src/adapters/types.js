@@ -33,6 +33,8 @@
  * @typedef {object} Adapter
  * @property {string} id
  * @property {string} label
+ * @property {string} homeUrl                       where the popup sends someone who isn't on the site
+ * @property {string} profileExample                what a profile address looks like, for the popup
  * @property {string[]} metrics                     fields this platform populates
  * @property {() => string|null} detectSurface      current surface, or null if unsupported
  * @property {(url: string) => boolean} matchesFeedRequest
@@ -51,7 +53,12 @@
  * node contains all of them.
  */
 export function findCommonAncestor(selector, root = document) {
-  const anchors = Array.from(root.querySelectorAll(selector));
+  // Our sorted grid is a copy of these same tiles. Counting its anchors would
+  // put the "container" above both grids — and one level higher on every
+  // re-sort, hiding more of the page each time.
+  const anchors = Array.from(root.querySelectorAll(selector)).filter(
+    (anchor) => !anchor.closest("[data-sfb-grid]"),
+  );
   if (anchors.length === 0) return null;
 
   let node = anchors[0].parentElement;

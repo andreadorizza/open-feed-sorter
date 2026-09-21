@@ -13,14 +13,15 @@ npm install
 npm test
 ```
 
-87 tests, ~4 s. No browser, no network, no accounts.
+111 tests, ~7 s. No browser, no network, no accounts.
 
 | Area | What it covers |
 |---|---|
 | `core/` | sorting, outlier maths, date ranges, CSV/JSON/XLSX output |
 | `adapters/` | endpoint matching, payload parsing, field mapping, both Instagram reels shapes |
 | `collector` | the collect loop against jsdom — real waiting, real DOM capture |
-| `grid` | hide/replace/restore, overlays, outlier badges |
+| `grid` | hide/replace/restore, overlays, outlier scores, clicks open a new tab |
+| `toolbar` | outlier option when unscorable, re-sort survives a rebuild |
 | `net-hooks` | interception, clone-don't-consume, malformed bodies |
 | `session` | the reload handshake and its re-run guard |
 

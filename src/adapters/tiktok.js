@@ -19,6 +19,8 @@ const TILE_SELECTOR = 'a[href*="/video/"]';
 export const tiktokAdapter = {
   id: "tiktok",
   label: "TikTok",
+  homeUrl: "https://www.tiktok.com/",
+  profileExample: "tiktok.com/@username",
   surfaces: SURFACES,
   metrics: ["views", "likes", "comments", "shares", "saves"],
 

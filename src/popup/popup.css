@@ -1,90 +1,141 @@
+/*
+ * Popup: a dot-matrix LCD panel set in Matrix Sans Screen.
+ *
+ * Type sizes are multiples of 5px so the font's 0.1em dots land on whole
+ * device pixels on a 2x screen — see content/styles.css.
+ */
+
+@font-face {
+  font-family: "SFF Matrix Sans Screen";
+  src: url("../fonts/MatrixSansScreen-Regular.woff2") format("woff2");
+  font-display: block;
+}
+
 :root {
-  --bg: #ffffff;
-  --fg: #111827;
-  --muted: #6b7280;
-  --line: rgba(0, 0, 0, 0.12);
-  --accent: #6366f1;
-  color-scheme: light dark;
+  --lcd: #c7e3ab;
+  --ink: #13200f;
+  --dim: #4d6440;
+  --ghost: rgba(19, 32, 15, 0.07);
+  --shadow: rgba(19, 32, 15, 0.3);
+  --font: "SFF Matrix Sans Screen", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111827;
-    --fg: #f9fafb;
-    --muted: #9ca3af;
-    --line: rgba(255, 255, 255, 0.14);
+    --lcd: #0e170b;
+    --ink: #b9e18f;
+    --dim: #71905a;
+    --ghost: rgba(185, 225, 143, 0.06);
+    --shadow: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
   }
 }
+
+/* Author display rules would otherwise beat the UA's [hidden] rule — which
+   is how every panel of this popup once showed at the same time. */
+[hidden] { display: none !important; }
 
 * { box-sizing: border-box; }
 
 body {
-  width: 320px;
+  width: 340px;
   margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  font: 400 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  background-color: var(--lcd);
+  background-image: radial-gradient(var(--ghost) 0.75px, transparent 1px);
+  background-size: 3px 3px;
+  color: var(--ink);
+  font: 400 15px/1.3 var(--font);
+  -webkit-font-smoothing: antialiased;
 }
 
-.head { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
-h1 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
-.context { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+.head { padding: 16px 16px 12px; border-bottom: 2px solid var(--ink); }
+h1 { margin: 0; font-size: 20px; font-weight: 400; line-height: 1.2; text-transform: uppercase; }
+.context { margin: 6px 0 0; color: var(--dim); }
 
-.body { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+.body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 
-.field { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; }
-.field__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.field__label { padding: 0; color: var(--dim); text-transform: uppercase; }
+
+.select { position: relative; display: flex; align-items: center; }
+.select > svg {
+  position: absolute;
+  right: 10px;
+  width: 0.6em;
+  height: 0.7em;
+  pointer-events: none;
+}
 
 select {
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--fg);
+  appearance: none;
+  padding: 7px 32px 6px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--lcd);
+  color: var(--ink);
   font: inherit;
   cursor: pointer;
 }
 
-.segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.segmented input { position: absolute; opacity: 0; pointer-events: none; }
-.segmented span {
-  display: block;
-  padding: 7px 0;
-  text-align: center;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 12px;
-}
-.segmented input:checked + span {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  font-weight: 600;
-}
+/* Inverse video marks the active mode — impossible to misread at a glance. */
+.segmented { display: grid; grid-template-columns: 1fr 1fr; border: 2px solid var(--ink); }
+.segmented label { position: relative; display: block; }
+.segmented label + label { border-left: 2px solid var(--ink); }
+.segmented input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.segmented span { display: block; padding: 7px 0 6px; text-align: center; cursor: pointer; }
+.segmented span::before { content: "\00a0\00a0"; }
+.segmented input:checked + span { background: var(--ink); color: var(--lcd); }
+.segmented input:checked + span::before { content: "\00bb\00a0"; }
+.segmented input:focus-visible + span { outline: 2px dashed var(--ink); outline-offset: -6px; }
+.segmented input:checked:focus-visible + span { outline-color: var(--lcd); }
 
 .primary {
   width: 100%;
-  padding: 10px;
-  border: 0;
-  border-radius: 9px;
-  background: linear-gradient(90deg, #6366f1, #ec4899);
-  color: #fff;
-  font: 600 13px/1 system-ui, sans-serif;
+  padding: 11px 10px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--lcd);
+  box-shadow: 3px 3px 0 var(--shadow);
+  font: inherit;
+  text-transform: uppercase;
   cursor: pointer;
 }
-.primary:disabled { opacity: 0.5; cursor: default; }
+.primary:hover { background: var(--dim); border-color: var(--dim); }
+.primary:active { transform: translate(3px, 3px); box-shadow: none; }
+.primary:disabled { opacity: 0.55; cursor: default; transform: none; }
+.primary:focus-visible, select:focus-visible, .go__link:focus-visible {
+  outline: 2px dashed var(--ink);
+  outline-offset: 3px;
+}
 
-.hint, .note { margin: 0; font-size: 11px; color: var(--muted); }
+.hint, .note, .example { margin: 0; color: var(--dim); }
 .note:empty { display: none; }
-.empty { margin: 0; color: var(--muted); }
+.lead { margin: 0; }
+.example { padding: 8px 10px; border: 2px dotted var(--dim); color: var(--ink); }
+
+.go { display: grid; gap: 10px; }
+.go__link {
+  display: block;
+  padding: 11px 12px 10px;
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--shadow);
+  color: var(--ink);
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.go__link:hover { background: var(--ink); color: var(--lcd); }
+.go__link:active { transform: translate(3px, 3px); box-shadow: none; }
 
 .foot {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
   padding: 10px 16px;
-  border-top: 1px solid var(--line);
-  font-size: 11px;
-  color: var(--muted);
+  border-top: 2px solid var(--ink);
+  color: var(--dim);
 }
-.foot a { color: var(--accent); }
+.foot a { color: var(--ink); }

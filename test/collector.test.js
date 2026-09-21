@@ -6,7 +6,7 @@ import { StopSignal } from "../src/page/runtime/abort.js";
 import instagram from "../src/adapters/instagram.js";
 import { resolveRange } from "../src/core/dates.js";
 
-function setup(config, page = null) {
+function setup(config, { baseline = null } = {}) {
   const env = makeProfileDom();
   const signal = new StopSignal();
   const progress = [];
@@ -15,8 +15,9 @@ function setup(config, page = null) {
     config: { platform: "instagram", surface: "reels", ...config },
     signal,
     onProgress: (p) => progress.push(p),
+    baseline,
   });
-  return { env, signal, collector, progress, page };
+  return { env, signal, collector, progress };
 }
 
 test("collects up to the requested count and stops there", async () => {
@@ -182,5 +183,74 @@ test("responses that are not feed pages are ignored", async () => {
   const { env, collector } = setup({ mode: "count", count: 5 });
   assert.equal(collector.acceptPage({ data: { something_else: {} } }), false);
   assert.equal(collector.acceptPage({}), false);
+  env.teardown();
+});
+
+// ── baseline top-up ─────────────────────────────────────────────────────
+// Fixture items are dated years back and all carry views, so each one
+// qualifies for the baseline.
+
+test("keeps reading into the pool after the count until the baseline can be scored", async () => {
+  const codes = ["A", "B", "C", "D", "E", "F"];
+  const { env, collector, progress } = setup(
+    { mode: "count", count: 2 },
+    { baseline: { metric: "views", need: 4, maxExtra: 10 } },
+  );
+  for (const code of codes) env.addTile(code);
+
+  collector.acceptPage(reelsPage(codes, true));
+  const result = await collector.finished();
+
+  assert.equal(result.reason, "count-reached", "the displayed set is what finished the run");
+  assert.deepEqual(result.items.map((i) => i.code), ["A", "B"], "extra posts are not displayed");
+  assert.deepEqual(result.pool.map((i) => i.code), ["A", "B", "C", "D"], "stops once 4 qualify");
+  assert.ok(progress.some((p) => p.phase === "baseline"), "the banner can say what it is doing");
+  env.teardown();
+});
+
+test("the top-up gives up after maxExtra posts", async () => {
+  const codes = ["A", "B", "C", "D", "E", "F"];
+  const { env, collector } = setup(
+    { mode: "count", count: 2 },
+    { baseline: { metric: "views", need: 50, maxExtra: 2 } },
+  );
+  for (const code of codes) env.addTile(code);
+
+  collector.acceptPage(reelsPage(codes, true));
+  const result = await collector.finished();
+
+  assert.equal(result.reason, "count-reached");
+  assert.equal(result.pool.length, 4);
+  env.teardown();
+});
+
+test("running out of feed while topping up still reports the display reason", async () => {
+  const { env, collector } = setup(
+    { mode: "count", count: 2 },
+    { baseline: { metric: "views", need: 50, maxExtra: 50 } },
+  );
+  for (const code of ["A", "B", "C"]) env.addTile(code);
+
+  collector.acceptPage(reelsPage(["A", "B", "C"], false));
+  const result = await collector.finished();
+
+  assert.equal(result.reason, "count-reached");
+  assert.equal(result.items.length, 2);
+  assert.equal(result.pool.length, 3);
+  env.teardown();
+});
+
+test("no top-up when the run already has enough", async () => {
+  const codes = ["A", "B", "C", "D"];
+  const { env, collector } = setup(
+    { mode: "count", count: 3 },
+    { baseline: { metric: "views", need: 2, maxExtra: 10 } },
+  );
+  for (const code of codes) env.addTile(code);
+
+  collector.acceptPage(reelsPage(codes, true));
+  const result = await collector.finished();
+
+  assert.equal(result.pool.length, 3);
   env.teardown();
 });

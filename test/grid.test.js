@@ -16,15 +16,19 @@ function items(n) {
   }));
 }
 
-test("hides the platform grid rather than reordering it", () => {
+test("sets the platform grid aside rather than reordering it", () => {
   const env = makeProfileDom();
   env.addTile("C0");
   const container = env.grid;
 
   renderGrid(items(3), { container });
 
-  assert.equal(container.style.display, "none");
-  assert.equal(container.dataset.sfbHidden, "true");
+  // Parked, not display:none — a zero-height grid makes the site think the
+  // user is always at the end of it, and it pages through the whole profile.
+  assert.equal(container.dataset.sfbHidden, "parked");
+  assert.equal(container.style.position, "fixed");
+  assert.equal(container.style.visibility, "hidden");
+  assert.notEqual(container.style.display, "none");
   // The original is intact underneath, so exiting restores it exactly.
   assert.ok(container.querySelector("a"));
   env.teardown();
@@ -80,17 +84,52 @@ test("omits metrics the platform did not return", () => {
   env.teardown();
 });
 
-test("badges only genuine outliers", () => {
+test("every scored tile shows its score; only real outliers are highlighted", () => {
   const env = makeProfileDom();
   env.addTile("C0");
   const list = items(3);
   list[0].outlierScore = 4.2;
-  list[1].outlierScore = 1.1; // normal — no badge
+  list[1].outlierScore = 1.1; // normal — shown, not highlighted
+  // list[2] has no score at all — nothing to show
   renderGrid(list, { container: env.grid });
 
   const badges = env.window.document.querySelectorAll(".sfb-tile__outlier");
-  assert.equal(badges.length, 1);
-  assert.equal(badges[0].textContent, "4.2x");
+  assert.deepEqual([...badges].map((b) => b.textContent), ["4.2x", "1.1x"]);
+  const hot = env.window.document.querySelectorAll(".sfb-tile__outlier--hot");
+  assert.equal(hot.length, 1);
+  assert.equal(hot[0].textContent, "4.2x");
+  env.teardown();
+});
+
+test("a click opens the post in a new tab instead of navigating away", () => {
+  const env = makeProfileDom();
+  env.addTile("C0");
+  const opened = [];
+  renderGrid(items(1), { container: env.grid, onOpen: (item) => opened.push(item.url) });
+
+  const link = env.window.document.querySelector(".sfb-tile a");
+  assert.equal(link.target, "_blank", "copied links are retargeted for modified clicks too");
+
+  const event = new env.window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 });
+  link.dispatchEvent(event);
+
+  assert.equal(event.defaultPrevented, true, "the tab itself does not navigate");
+  assert.deepEqual(opened, ["https://www.instagram.com/creator/reel/C0/"]);
+  env.teardown();
+});
+
+test("a cmd-click is left to the browser", () => {
+  const env = makeProfileDom();
+  env.addTile("C0");
+  const opened = [];
+  renderGrid(items(1), { container: env.grid, onOpen: (item) => opened.push(item.url) });
+
+  const link = env.window.document.querySelector(".sfb-tile a");
+  const event = new env.window.MouseEvent("click", { bubbles: true, cancelable: true, metaKey: true });
+  link.addEventListener("click", (e) => e.preventDefault()); // keep jsdom from navigating
+  link.dispatchEvent(event);
+
+  assert.deepEqual(opened, []);
   env.teardown();
 });
 
@@ -112,14 +151,16 @@ test("clearGrid restores the page exactly", () => {
   const env = makeProfileDom();
   env.addTile("C0");
   const container = env.grid;
-  const before = container.style.display;
+  container.style.paddingTop = "120px"; // the site's own virtualisation spacer
+  const before = container.style.cssText;
 
   renderGrid(items(3), { container });
   clearGrid();
 
   assert.equal(env.window.document.getElementById("sfb-grid"), null);
-  assert.equal(container.style.display, before);
+  assert.equal(container.style.cssText, before);
   assert.equal(container.dataset.sfbHidden, undefined);
+  assert.equal(container.getAttribute("aria-hidden"), null);
   env.teardown();
 });
 
@@ -131,5 +172,84 @@ test("re-rendering replaces the previous grid instead of stacking", () => {
 
   assert.equal(env.window.document.querySelectorAll("#sfb-grid").length, 1);
   assert.equal(env.window.document.querySelectorAll(".sfb-tile").length, 2);
+  env.teardown();
+});
+
+test("a re-sort reorders tiles inside the same grid", () => {
+  const env = makeProfileDom();
+  env.addTile("C0");
+  const first = renderGrid(items(3), { container: env.grid });
+  const columns = first.style.gridTemplateColumns;
+
+  const reversed = items(3).reverse();
+  const second = renderGrid(reversed, { container: env.grid });
+
+  assert.equal(second, first, "same element — nothing re-measured");
+  assert.equal(second.style.gridTemplateColumns, columns);
+  assert.deepEqual(
+    [...second.querySelectorAll(".sfb-tile")].map((t) => t.dataset.sfbItemId),
+    ["id2", "id1", "id0"],
+  );
+  assert.equal(env.grid.dataset.sfbHidden, "parked", "the original stays set aside throughout");
+  env.teardown();
+});
+
+test("the column count comes from the platform's own rows", () => {
+  const env = makeProfileDom();
+  // Four tiles in a row of 4, then one more below — jsdom has no layout, so
+  // the rectangles are supplied.
+  const lefts = [0, 104, 208, 312, 0];
+  const tops = [0, 0, 0, 0, 140];
+  lefts.forEach((left, i) => {
+    const tile = env.addTile(`T${i}`);
+    tile.querySelector("a").getBoundingClientRect = () => ({
+      left, right: left + 100, top: tops[i], bottom: tops[i] + 130, width: 100, height: 130,
+    });
+  });
+
+  const grid = renderGrid(items(2), { container: env.grid });
+  assert.equal(grid.style.gridTemplateColumns, "repeat(4, minmax(0, 1fr))");
+  assert.equal(grid.style.columnGap, "4px");
+  env.teardown();
+});
+
+test("by default a click opens the item's own URL", () => {
+  const env = makeProfileDom();
+  env.addTile("C0");
+  renderGrid(items(1), { container: env.grid });
+
+  const opened = [];
+  const realClick = env.window.HTMLAnchorElement.prototype.click;
+  env.window.HTMLAnchorElement.prototype.click = function () {
+    opened.push({ href: this.href, target: this.target });
+  };
+  try {
+    const link = env.window.document.querySelector(".sfb-tile a");
+    link.dispatchEvent(new env.window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+  } finally {
+    env.window.HTMLAnchorElement.prototype.click = realClick;
+  }
+
+  // Once shipped as ".../reels/[object%20Object]": the item was passed where a URL belonged.
+  assert.deepEqual(opened, [{ href: "https://www.instagram.com/creator/reel/C0/", target: "_blank" }]);
+  env.teardown();
+});
+
+test("falls back to display:none if parking would stretch the page", () => {
+  const env = makeProfileDom();
+  env.addTile("C0");
+  // A transformed ancestor turns position:fixed into position:absolute, and
+  // the parked grid 100000px down would then lengthen the page.
+  let calls = 0;
+  Object.defineProperty(env.window.document.documentElement, "scrollHeight", {
+    configurable: true,
+    get: () => (calls++ === 0 ? 2000 : 102000),
+  });
+
+  renderGrid(items(1), { container: env.grid });
+
+  assert.equal(env.grid.dataset.sfbHidden, "removed");
+  assert.equal(env.grid.style.display, "none");
+  assert.equal(env.grid.style.position, "", "the parking styles were undone");
   env.teardown();
 });

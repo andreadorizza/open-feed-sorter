@@ -6,7 +6,7 @@ export function toJson(items, meta = {}) {
   return JSON.stringify(
     {
       exportedAt: new Date().toISOString(),
-      generator: "sort-feed-better",
+      generator: "sort-feed-for-free",
       ...meta,
       items: items.map((item) => {
         const copy = {};

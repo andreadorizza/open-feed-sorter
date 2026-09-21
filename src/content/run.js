@@ -13,6 +13,9 @@ import { listen, post, PageMsg, ContentMsg, TO_CONTENT, TO_PAGE } from "../core/
 import { Banner } from "./runtime/banner.js";
 import { renderGrid, clearGrid } from "./runtime/grid.js";
 import { Toolbar } from "./runtime/toolbar.js";
+import { installFont } from "./runtime/font.js";
+import { usableBaseline } from "../core/outlier.js";
+import { SORT_KEYS } from "../core/sort.js";
 
 /**
  * How long to wait for any sign of life from the page world before telling the
@@ -24,6 +27,7 @@ const STALL_TIMEOUT_MS = 20_000;
 export function startContentRuntime() {
   const adapter = adapterForHost();
   if (!adapter) return;
+  installFont();
 
   const banner = new Banner();
   const toolbar = new Toolbar({
@@ -31,11 +35,14 @@ export function startContentRuntime() {
     onExit: () => {
       toolbar.remove();
       clearGrid();
+      host = null;
     },
   });
 
   let meta = {};
   let settled = false;
+  /** The platform grid we replaced; found once per run, reused on re-sort. */
+  let host = null;
 
   /**
    * Render the grid and re-seat the toolbar above it.
@@ -45,10 +52,8 @@ export function startContentRuntime() {
    * old one would end up below the new one.
    */
   function render(items) {
-    const grid = renderGrid(items, {
-      container: adapter.gridContainer(),
-      onOpen: (item) => window.open(item.url, "_blank", "noopener"),
-    });
+    if (!host?.isConnected) host = adapter.gridContainer();
+    const grid = renderGrid(items, { container: host, outlier: meta.outlier });
     if (grid) toolbar.mount(items, meta, grid);
   }
 
@@ -66,6 +71,7 @@ export function startContentRuntime() {
           surface: adapter.detectSurface(),
           surfaces: adapter.surfaces,
           profile: adapter.profileName(),
+          profileExample: adapter.profileExample,
         });
         return false;
       }
@@ -105,11 +111,16 @@ export function startContentRuntime() {
       switch (message.type) {
         case PageMsg.PROGRESS:
           settled = true;
-          banner.setSubtitle(
-            message.target
-              ? `Collected ${message.collected} of ${message.target}`
-              : `Collected ${message.collected}`,
-          );
+          if (message.phase === "baseline") {
+            banner.setTitle(`Got ${message.collected}. Reading a few older posts…`);
+            banner.setSubtitle("Needed to score outliers. Stop keeps everything you asked for.");
+          } else {
+            banner.setSubtitle(
+              message.target
+                ? `Collected ${message.collected} of ${message.target}`
+                : `Collected ${message.collected}`,
+            );
+          }
           banner.setProgress(message.ratio);
           break;
 
@@ -117,7 +128,13 @@ export function startContentRuntime() {
           settled = true;
           meta = message.meta;
           render(message.items);
-          banner.finish(summarise(message));
+          // The run left the page scrolled to wherever the feed ended. Start
+          // the user at the top, where the toolbar and rank #1 are.
+          window.scrollTo({ top: 0, behavior: "instant" });
+          {
+            const summary = summarise(message);
+            banner.finish(summary, { autoHideMs: summary.length > 40 ? 8000 : 4000 });
+          }
           break;
 
         case PageMsg.EMPTY:
@@ -170,12 +187,19 @@ export function startContentRuntime() {
 }
 
 function describeRun(config) {
-  const what = config?.mode === "count" ? `${config.count} posts` : "a date range";
-  return `Sorting ${what} by ${config?.sortBy ?? "views"}…`;
+  const what = config?.mode === "count" ? `latest ${config.count} posts` : "a date range";
+  const by = SORT_KEYS[config?.sortBy]?.label.toLowerCase() ?? "most views";
+  return `Sorting ${what} by ${by}…`;
 }
 
 function summarise({ items, meta }) {
-  if (meta.reason === "stopped") return `Stopped — showing ${items.length} sorted.`;
-  if (meta.reason === "stalled") return `Showing ${items.length} — the feed stopped loading more.`;
-  return `Sorted ${items.length} posts.`;
+  let text = `Sorted ${items.length} posts.`;
+  if (meta.reason === "stopped") text = `Stopped — showing ${items.length} sorted.`;
+  if (meta.reason === "stalled") text = `Showing ${items.length} — the feed stopped loading more.`;
+
+  // Asked for outliers and didn't get them: say so here, not only in the toolbar.
+  if (meta.config?.sortBy === "outlier" && !usableBaseline(meta.outlier)) {
+    text += ` Too few older posts to score outliers, so sorted by ${meta.outlier?.metric || "views"}.`;
+  }
+  return text;
 }

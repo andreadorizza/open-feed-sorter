@@ -98,8 +98,14 @@ and chasing every redesign. It would also break: the CDN image URLs are
 short-lived and signed, so a tile rebuilt later shows broken images. Cloning
 inherits the site's own layout, hover states and badges for free.
 
-The platform's grid is hidden (`display:none`), never removed, so exiting is one
-line and the site's own state is untouched.
+The platform's grid is set aside, never removed, so exiting is one call and the
+site's own state is untouched. It is *parked* — fixed, invisible, far below the
+viewport — not `display:none`. A `display:none` grid measures as zero height,
+so the site's infinite scroll decides the user is always at the end of it and
+pages through the whole profile in the background. Parked, it keeps its real
+size and the end of the feed always looks far away. If parking would lengthen
+the page (a transformed ancestor makes `position: fixed` behave like
+`absolute`), it falls back to `display:none`.
 
 ---
 
@@ -141,9 +147,16 @@ computed over everything the run saw. Computing it over a filtered slice would
 mean "last week's posts, compared against last week's median" — which is close
 to meaningless when the question is "did last week beat this account's normal?"
 
-Scoring runs on every sort, not only when it was asked for, because the pool is
-in memory anyway. A stopped run is the exception: its pool is truncated at an
-arbitrary point, and a truncated pool skews the median.
+Scoring runs on every sort, not only when it was asked for, because every
+tile shows its score. A stopped run is scored too: its pool is the newest part
+of the feed, which is what the baseline reads anyway.
+
+A short run — "Latest 25", or a one-week range — often has too few posts older
+than three days to score. So once the displayed set is complete, the collector
+keeps reading into the pool only (no tile capture, nothing added to the grid)
+until 25 posts qualify or it has read 48 more. The finish reason stays the one
+that completed the display, and Stop during this phase loses nothing the user
+asked for.
 
 ---
 
@@ -156,6 +169,8 @@ exporting an object that satisfies the contract in `src/adapters/types.js`:
 export default {
   id: "example",
   label: "Example",
+  homeUrl: "https://www.example.com/",        // the popup's "Open Example" button
+  profileExample: "example.com/@username",    // shown when the tab isn't a profile
   surfaces: { videos: { label: "Videos", metrics: ["views", "likes"] } },
   metrics: ["views", "likes"],
 
@@ -202,7 +217,7 @@ please say so in an issue.
 ## Testing
 
 ```bash
-npm test          # 87 tests, no browser
+npm test          # 111 tests, no browser
 ```
 
 `core/` and `adapters/` are pure and tested directly. The collector, grid and

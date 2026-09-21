@@ -9,11 +9,18 @@
 import { SORT_KEYS, availableSortKeys } from "../core/sort.js";
 import { RANGE_PRESETS } from "../core/dates.js";
 import { estimatePauseMs } from "../page/runtime/pace.js";
+import { ADAPTERS, adapterForHost } from "../adapters/index.js";
+import { dotIcon } from "../content/runtime/dots.js";
 
 const ui = {
   context: document.getElementById("context"),
   form: document.getElementById("form"),
-  unsupported: document.getElementById("unsupported"),
+  elsewhere: document.getElementById("elsewhere"),
+  go: document.getElementById("go"),
+  notProfile: document.getElementById("notProfile"),
+  example: document.getElementById("example"),
+  stale: document.getElementById("stale"),
+  reload: document.getElementById("reload"),
   sortBy: document.getElementById("sortBy"),
   count: document.getElementById("count"),
   countField: document.getElementById("countField"),
@@ -27,19 +34,35 @@ init();
 
 async function init() {
   fillRanges();
+  for (const wrap of document.querySelectorAll(".select")) wrap.appendChild(dotIcon("caret"));
 
   const tab = await activeTab();
   const context = tab ? await askContext(tab.id) : null;
 
   if (!context) {
-    ui.context.textContent = "Not an Instagram or TikTok tab.";
-    ui.unsupported.hidden = false;
+    // The content script runs on every page of a supported site, so silence
+    // there means the tab was loaded before the extension was.
+    const site = siteOf(tab);
+    if (site) {
+      ui.context.textContent = `${site.label} · needs a reload`;
+      ui.stale.hidden = false;
+      ui.reload.addEventListener("click", () => {
+        chrome.tabs.reload(tab.id);
+        window.close();
+      });
+      return;
+    }
+
+    ui.context.textContent = "Not an Instagram or TikTok tab";
+    fillDestinations();
+    ui.elsewhere.hidden = false;
     return;
   }
 
   if (!context.surface) {
-    ui.context.textContent = `${context.label} — open a profile page.`;
-    ui.unsupported.hidden = false;
+    ui.context.textContent = `${context.label} · not a profile page`;
+    ui.example.textContent = context.profileExample || "";
+    ui.notProfile.hidden = false;
     return;
   }
 
@@ -53,6 +76,27 @@ async function init() {
   wireMode();
 
   ui.run.addEventListener("click", () => startRun(tab.id));
+}
+
+/** One button per supported site, so the way forward is a click, not a hunt. */
+function fillDestinations() {
+  for (const adapter of Object.values(ADAPTERS)) {
+    const link = document.createElement("a");
+    link.className = "go__link";
+    link.href = adapter.homeUrl;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = `Open ${adapter.label}`;
+    ui.go.appendChild(link);
+  }
+}
+
+function siteOf(tab) {
+  try {
+    return tab?.url ? adapterForHost(new URL(tab.url).hostname) : null;
+  } catch {
+    return null;
+  }
 }
 
 function fillRanges() {
@@ -81,6 +125,8 @@ function fillSortKeys(metrics) {
 }
 
 function wireMode() {
+  ui.count.addEventListener("change", updateNote);
+  ui.range.addEventListener("change", updateNote);
   for (const radio of document.querySelectorAll('input[name="mode"]')) {
     radio.addEventListener("change", () => {
       const mode = currentMode();
@@ -125,7 +171,7 @@ function updateNote() {
 
   if (ui.sortBy.value === "outlier") {
     notes.push(
-      "Outlier scores compare each post with this account's recent median. Needs at least 20 posts older than 3 days.",
+      "Outlier score = a post's views ÷ this account's median. A short run reads a few older posts to find that median.",
     );
   }
 

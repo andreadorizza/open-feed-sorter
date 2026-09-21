@@ -83,9 +83,9 @@ for (const file of bundles) {
   const source = await readFile(file, "utf8");
   for (const [url] of source.matchAll(/https?:\/\/[a-zA-Z0-9._-]+/g)) {
     const host = url.replace(/^https?:\/\//, "");
-    // XML namespace URLs appear in the xlsx writer; they are identifiers in
-    // the file format, never fetched.
-    if (host === "schemas.openxmlformats.org") continue;
+    // XML namespace URLs appear in the xlsx writer and the SVG icons; they
+    // are identifiers in the file format, never fetched.
+    if (host === "schemas.openxmlformats.org" || host === "www.w3.org") continue;
     if (!ALLOWED_HOSTS.includes(host)) {
       fail(`${relative(dist, file)} references an unexpected host: ${host}`);
     }

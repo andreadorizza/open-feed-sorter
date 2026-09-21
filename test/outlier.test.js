@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeBaseline, stampScores, median, formatScore } from "../src/core/outlier.js";
+import { computeBaseline, stampScores, median, formatScore, qualifies, explainBaseline } from "../src/core/outlier.js";
 
 const NOW = Date.UTC(2026, 0, 31);
 const DAY = 86_400_000;
@@ -91,4 +91,24 @@ test("scores format to one decimal below 10x and whole numbers above", () => {
   assert.equal(formatScore(3.44), "3.4x");
   assert.equal(formatScore(12.7), "13x");
   assert.equal(formatScore(null), "");
+});
+
+test("qualifies applies the same rules as the baseline", () => {
+  const base = { views: 10, createdAtMs: NOW - 10 * DAY, isPinned: false };
+  assert.equal(qualifies(base, { metric: "views", now: NOW }), true);
+  assert.equal(qualifies({ ...base, isPinned: true }, { metric: "views", now: NOW }), false);
+  assert.equal(qualifies({ ...base, createdAtMs: NOW - DAY }, { metric: "views", now: NOW }), false);
+  assert.equal(qualifies({ ...base, views: null }, { metric: "views", now: NOW }), false);
+});
+
+test("explainBaseline says what a score means, or why there is none", () => {
+  const scored = computeBaseline(pool(new Array(25).fill(12_400)), { metric: "views", now: NOW });
+  assert.match(explainBaseline(scored), /views ÷ 12\.4K/);
+  assert.match(explainBaseline(scored), /25 most recent/);
+
+  const thin = computeBaseline(pool(new Array(12).fill(100)), { metric: "views", now: NOW });
+  assert.match(explainBaseline(thin), /found 12 posts/);
+  assert.match(explainBaseline(thin), /needs 20/);
+
+  assert.equal(explainBaseline(null), "");
 });

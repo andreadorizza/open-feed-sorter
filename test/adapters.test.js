@@ -182,3 +182,25 @@ test("tiktok: detects a profile page only", () => {
   withLocation("/@someone/video/123", "www.tiktok.com", () =>
     assert.equal(tiktok.detectSurface(), null));
 });
+
+test("the grid container ignores our own sorted copy of the tiles", async () => {
+  const { makeProfileDom } = await import("../test-utils/dom.js");
+  const { renderGrid } = await import("../src/content/runtime/grid.js");
+  const env = makeProfileDom();
+  for (const code of ["A", "B", "C"]) env.addTile(code);
+  const original = instagram.gridContainer();
+  assert.equal(original, env.grid);
+
+  renderGrid(
+    ["A", "B", "C"].map((code) => ({
+      id: code,
+      url: `https://www.instagram.com/creator/reel/${code}/`,
+      html: `<div><a href="/creator/reel/${code}/"><img src="https://cdn/${code}.jpg"></a></div>`,
+    })),
+    { container: original },
+  );
+
+  // Before the fix this returned <main>, the parent of both grids.
+  assert.equal(instagram.gridContainer(), env.grid);
+  env.teardown();
+});

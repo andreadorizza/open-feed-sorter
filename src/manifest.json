@@ -1,19 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "Sort Feed Better",
-  "short_name": "Sort Feed Better",
+  "name": "Sort Feed for Free",
+  "short_name": "Sort Feed for Free",
   "version": "0.1.0",
-  "description": "Sort any Instagram or TikTok profile by views, likes, comments or outlier score — then export the results. Open source, no account.",
+  "description": "Free and open source: sort any Instagram or TikTok profile by views, likes, comments or outlier score, then export. No account.",
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
       "48": "icons/icon-48.png",
       "128": "icons/icon-128.png"
     }
   },
   "icons": {
     "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },

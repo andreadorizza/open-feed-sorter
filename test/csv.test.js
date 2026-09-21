@@ -41,6 +41,6 @@ test("json export drops captured markup but keeps the metrics", () => {
   const payload = JSON.parse(toJson([{ ...base, views: 7, html: "<div>huge</div>" }]));
   assert.equal(payload.items[0].views, 7);
   assert.equal(payload.items[0].html, undefined);
-  assert.equal(payload.generator, "sort-feed-better");
+  assert.equal(payload.generator, "sort-feed-for-free");
   assert.ok(payload.exportedAt);
 });

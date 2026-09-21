@@ -20,6 +20,7 @@ import { waitForElement, waitForMedia } from "./dom-wait.js";
 import { PendingPage, requestNextPage } from "./scroll.js";
 import { nextDelay, pause } from "./pace.js";
 import { inRange, isOlderThanRange } from "../../core/dates.js";
+import { qualifies } from "../../core/outlier.js";
 
 export class Collector {
   /**
@@ -28,12 +29,17 @@ export class Collector {
    * @param {import("../../core/session.js").RunConfig} options.config
    * @param {import("./abort.js").StopSignal} options.signal
    * @param {(progress: object) => void} options.onProgress
+   * @param {{metric: string, need: number, maxExtra: number}|null} [options.baseline]
+   *   when set, keep reading past the finish line — into the pool only — until
+   *   `need` items qualify for an outlier baseline or `maxExtra` more have been
+   *   read. Without this a short run has too few posts to score.
    */
-  constructor({ adapter, config, signal, onProgress }) {
+  constructor({ adapter, config, signal, onProgress, baseline = null }) {
     this.adapter = adapter;
     this.config = config;
     this.signal = signal;
     this.onProgress = onProgress || (() => {});
+    this.baseline = baseline;
 
     /** @type {import("../../adapters/types.js").FeedItem[]} */
     this.items = [];
@@ -48,11 +54,17 @@ export class Collector {
     this._doneResolve = null;
     this._finished = false;
 
+    /** Set once the displayed set is complete; the run may still be topping up the pool. */
+    this._displayReason = null;
+    this._qualifying = 0;
+    this._extraRead = 0;
+
     this._done = new Promise((resolve) => {
       this._doneResolve = resolve;
     });
 
-    signal.onStop(() => this._finish("stopped"));
+    // Stopping while topping up the pool loses nothing the user asked for.
+    signal.onStop(() => this._finish(this._displayReason || "stopped"));
   }
 
   /** Called by the network hook for each parsed feed response. */
@@ -91,7 +103,7 @@ export class Collector {
 
         if (!page.hasMore) {
           this._feedExhausted = true;
-          this._finish("feed-exhausted");
+          this._finish(this._displayReason || "feed-exhausted");
           return;
         }
 
@@ -105,7 +117,7 @@ export class Collector {
         const container = this.adapter.gridContainer();
         const arrived = await requestNextPage(container, this._pending, { signal: this.signal });
         if (!arrived) {
-          this._finish("stalled");
+          this._finish(this._displayReason || "stalled");
           return;
         }
       }
@@ -130,13 +142,25 @@ export class Collector {
       // including items a date filter rejects — the baseline describes the
       // account, not the slice being displayed.
       this.pool.push(item);
+      if (this.baseline && qualifies(item, { metric: this.baseline.metric })) this._qualifying++;
+
+      if (this._displayReason) {
+        // Past the finish line: this item only feeds the baseline.
+        this._extraRead++;
+        this._emitProgress();
+        if (this._baselineSettled()) {
+          this._finish(this._displayReason);
+          return true;
+        }
+        continue;
+      }
 
       if (range) {
         // Pinned items sit out of chronological order at the top of the feed,
         // so one falling outside the range says nothing about how deep we are.
         if (!item.isPinned && isOlderThanRange(item.createdAtMs, range)) {
-          this._finish("range-complete");
-          return true;
+          if (this._completeDisplay("range-complete")) return true;
+          continue;
         }
         if (!inRange(item.createdAtMs, range)) continue;
       }
@@ -149,12 +173,32 @@ export class Collector {
       this._emitProgress();
 
       if (this.target && this.items.length >= this.target) {
-        this._finish("count-reached");
-        return true;
+        if (this._completeDisplay("count-reached")) return true;
       }
     }
 
     return false;
+  }
+
+  /**
+   * The displayed set is complete. Finish now, or keep reading for the
+   * baseline if the pool is still too thin to score.
+   *
+   * @returns {boolean} true when the run finished
+   */
+  _completeDisplay(reason) {
+    this._displayReason = reason;
+    if (this._baselineSettled()) {
+      this._finish(reason);
+      return true;
+    }
+    this._emitProgress();
+    return false;
+  }
+
+  _baselineSettled() {
+    if (!this.baseline) return true;
+    return this._qualifying >= this.baseline.need || this._extraRead >= this.baseline.maxExtra;
   }
 
   /**
@@ -201,7 +245,15 @@ export class Collector {
       }
     }
 
-    this.onProgress({ collected, target: this.target, ratio });
+    if (this._displayReason) {
+      // Topping up the baseline: progress is toward enough scorable posts.
+      const { need, maxExtra } = this.baseline;
+      ratio = Math.min(1, Math.max(this._qualifying / need, this._extraRead / maxExtra));
+      this.onProgress({ collected, target: this.target, ratio, phase: "baseline" });
+      return;
+    }
+
+    this.onProgress({ collected, target: this.target, ratio, phase: "collect" });
   }
 
   _finish(reason) {
