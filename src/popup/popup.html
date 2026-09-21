@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sort Feed Better</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <h1>Sort Feed Better</h1>
+      <p class="context" id="context">Checking this tab…</p>
+    </header>
+
+    <main class="body" id="form" hidden>
+      <label class="field">
+        <span class="field__label">Sort by</span>
+        <select id="sortBy"></select>
+      </label>
+
+      <fieldset class="field">
+        <legend class="field__label">How much to collect</legend>
+        <div class="segmented">
+          <label><input type="radio" name="mode" value="count" checked /><span>Latest N</span></label>
+          <label><input type="radio" name="mode" value="range" /><span>Date range</span></label>
+        </div>
+      </fieldset>
+
+      <label class="field" id="countField">
+        <span class="field__label">How many posts</span>
+        <select id="count">
+          <option value="25">Latest 25</option>
+          <option value="50">Latest 50</option>
+          <option value="100" selected>Latest 100</option>
+          <option value="250">Latest 250</option>
+          <option value="500">Latest 500</option>
+          <option value="100000">Everything</option>
+        </select>
+      </label>
+
+      <label class="field" id="rangeField" hidden>
+        <span class="field__label">Posted within</span>
+        <select id="range"></select>
+      </label>
+
+      <p class="note" id="note"></p>
+
+      <button type="button" class="primary" id="run">Sort this profile</button>
+      <p class="hint">Reloads the tab, then scrolls the feed to collect posts. You can stop at any time.</p>
+    </main>
+
+    <main class="body" id="unsupported" hidden>
+      <p class="empty">
+        Open an <strong>Instagram</strong> or <strong>TikTok</strong> profile, then click the
+        extension again.
+      </p>
+    </main>
+
+    <footer class="foot">
+      <span>No account, no tracking, no servers.</span>
+      <a href="https://github.com/andreadorizza/sort-feed-better" target="_blank" rel="noopener">Source</a>
+    </footer>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

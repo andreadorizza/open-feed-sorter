@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Lets you re-run the suite by hand without pushing an empty commit.
+  workflow_dispatch:
+
+# A new push makes the previous run's result irrelevant; don't pay for it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # The oldest supported version and the current one. The floor is what
+        # package.json declares; anything below it is unsupported, not broken.
+        node: ['22', '24']
+
+    name: node ${{ matrix.node }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Checks the built extension is actually loadable: every manifest path
+      # and getURL asset exists, every bundle parses, no unexpected network
+      # host, no permission creep. See scripts/verify-dist.mjs.
+      - name: Verify dist
+        run: npm run verify
+
+      - name: Upload build
+        # One version is enough to download and load unpacked from a PR.
+        if: matrix.node == '22'
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-dist
+          path: dist/
+          retention-days: 14
