@@ -141,6 +141,15 @@ of service, whoever does it. Large runs still page through a lot of the feed.
 Use your own judgement about your own account, and prefer the smallest run that
 answers your question.
 
+## Support
+
+The extension is free and always will be — nothing is reserved for a paid tier,
+because nothing about "latest 500" costs more to compute than "latest 25".
+
+If it saved you time, [a coffee](https://ko-fi.com/andreadorizza) is welcome and
+entirely optional. It buys nothing: there is no supporter build, no early
+access, and no feature behind it.
+
 ## Prior art
 
 Two open-source Instagram sorters exist and are worth knowing about:
