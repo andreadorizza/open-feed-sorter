@@ -3,7 +3,7 @@
 Sort any Instagram or TikTok profile by views, likes, comments or **outlier
 score** — then export the results. No account, no backend, no paywall.
 
-[![CI](https://github.com/andreadorizza/sort-feed-for-free/actions/workflows/ci.yml/badge.svg)](https://github.com/andreadorizza/sort-feed-for-free/actions/workflows/ci.yml)
+[![CI](https://github.com/andreadorizza/open-feed-sorter/actions/workflows/ci.yml/badge.svg)](https://github.com/andreadorizza/open-feed-sorter/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-4285F4.svg)](src/manifest.json)
 
@@ -52,8 +52,8 @@ one. Everything else runs entirely in the tab.
 No store listing yet. Build it and load it unpacked:
 
 ```bash
-git clone https://github.com/andreadorizza/sort-feed-for-free
-cd sort-feed-for-free
+git clone https://github.com/andreadorizza/open-feed-sorter
+cd open-feed-sorter
 npm install
 npm run build
 ```
