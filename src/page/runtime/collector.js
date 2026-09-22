@@ -113,10 +113,18 @@ export class Collector {
         const paced = await pause(nextDelay(), this.signal);
         if (!paced || this.signal.requested) return;
 
+        // The latch only hears pages that land while it is waiting, and
+        // capturing tiles scrolls enough for the site to fetch on its own — so
+        // the next page may already be queued. Waiting for a newer one would
+        // stall the run, and lose this one, if it was the last.
+        if (this._queue.length > 0) continue;
+
         this._pending.arm();
         const container = this.adapter.gridContainer();
         const arrived = await requestNextPage(container, this._pending, { signal: this.signal });
-        if (!arrived) {
+        // Likewise a page that lands as the last wait runs out: queued, but
+        // unheard. The queue, not the latch, says whether there is more to read.
+        if (!arrived && this._queue.length === 0) {
           this._finish(this._displayReason || "stalled");
           return;
         }

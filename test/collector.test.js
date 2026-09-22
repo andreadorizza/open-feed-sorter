@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { makeProfileDom, reelsPage } from "../test-utils/dom.js";
 import { Collector } from "../src/page/runtime/collector.js";
 import { StopSignal } from "../src/page/runtime/abort.js";
+import { PACE } from "../src/page/runtime/pace.js";
 import instagram from "../src/adapters/instagram.js";
 import { resolveRange } from "../src/core/dates.js";
 
@@ -252,5 +253,150 @@ test("no top-up when the run already has enough", async () => {
   const result = await collector.finished();
 
   assert.equal(result.pool.length, 3);
+  env.teardown();
+});
+
+// ── page boundaries ─────────────────────────────────────────────────────
+// Between pages the collector pauses (pace.js), then scrolls and gives the
+// site a few chances to send the next page (scroll.js). These tests run that in
+// mocked time and play the site: each scroll the collector makes is recorded,
+// and pages land when the test says so.
+
+// requestNextPage's watchdog, from scroll.js: four scrolls, 3.5 s apart.
+const SCROLLS = 4;
+const SCROLL_WAIT_MS = 3500;
+/** Longer than any pause plus the whole watchdog. */
+const RUN_OUT_MS = 30_000;
+
+const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+/** Move mocked time forward in small steps, letting the run react between them. */
+async function advance(t, ms, stepMs = 50) {
+  for (let elapsed = 0; elapsed < ms; elapsed += stepMs) {
+    await flush();
+    t.mock.timers.tick(stepMs);
+  }
+  await flush();
+}
+
+function setupPaced(t, config) {
+  const run = setup(config);
+  t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
+
+  // The site: every scroll is recorded, and answered with the next page in
+  // `answers` after a network round trip, if there is one.
+  const nudges = [];
+  const answers = [];
+  run.env.window.scrollTo = () => {
+    nudges.push(Date.now());
+    const page = answers.shift();
+    if (page) setTimeout(() => run.collector.acceptPage(page), 200);
+  };
+  return { ...run, nudges, answers };
+}
+
+test("a page that lands during the pause between pages is collected, not dropped", async (t) => {
+  // Scrolling tiles into view while capturing them is enough for the site to
+  // fetch its next page, so that page can land while the collector is pausing.
+  const { env, collector, nudges } = setupPaced(t, { mode: "count", count: 50 });
+  for (const code of ["A", "B", "C", "D", "E"]) env.addTile(code);
+
+  collector.acceptPage(reelsPage(["A", "B", "C"], true));
+  await advance(t, PACE.minMs / 2);
+  assert.equal(collector.items.length, 3, "page one is in");
+  assert.equal(nudges.length, 0, "and the collector is still pausing");
+
+  collector.acceptPage(reelsPage(["D", "E"], false, 3));
+  await advance(t, RUN_OUT_MS);
+
+  const result = await collector.finished();
+  assert.equal(result.reason, "feed-exhausted", "the last page ends the run rather than stalling it");
+  assert.equal(result.feedExhausted, true);
+  assert.deepEqual(result.items.map((i) => i.code), ["A", "B", "C", "D", "E"]);
+  assert.equal(nudges.length, 0, "no scrolling for a page that had already arrived");
+  env.teardown();
+});
+
+test("several pages landing during one pause are all collected, in feed order", async (t) => {
+  const codes = ["A", "B", "C", "D", "E", "F", "G", "H"];
+  const { env, collector, nudges } = setupPaced(t, { mode: "count", count: 50 });
+  for (const code of codes) env.addTile(code);
+
+  collector.acceptPage(reelsPage(["A", "B", "C"], true));
+  await advance(t, PACE.minMs / 2);
+  collector.acceptPage(reelsPage(["D", "E", "F"], true, 3));
+  collector.acceptPage(reelsPage(["G", "H"], false, 6));
+  await advance(t, RUN_OUT_MS);
+
+  const result = await collector.finished();
+  assert.equal(result.reason, "feed-exhausted");
+  assert.deepEqual(result.items.map((i) => i.code), codes);
+  assert.equal(nudges.length, 0);
+  env.teardown();
+});
+
+test("a page taken from the queue is counted once, and the next one is still scrolled for", async (t) => {
+  const codes = ["A", "B", "C", "D", "E", "F", "G"];
+  const { env, collector, nudges, answers, progress } = setupPaced(t, { mode: "count", count: 50 });
+  for (const code of codes) env.addTile(code);
+  answers.push(reelsPage(["G"], false, 6));
+
+  collector.acceptPage(reelsPage(["A", "B", "C"], true));
+  await advance(t, PACE.minMs / 2);
+  // The same page twice, as a retried request would deliver it.
+  collector.acceptPage(reelsPage(["D", "E", "F"], true, 3));
+  collector.acceptPage(reelsPage(["D", "E", "F"], true, 3));
+  await advance(t, RUN_OUT_MS);
+
+  const result = await collector.finished();
+  assert.equal(result.reason, "feed-exhausted");
+  assert.deepEqual(result.items.map((i) => i.code), codes);
+  assert.deepEqual(progress.map((p) => p.collected), [1, 2, 3, 4, 5, 6, 7], "each item counted once");
+  assert.equal(nudges.length, 1, "one scroll, for the page that had not arrived yet");
+  env.teardown();
+});
+
+test("a page landing just as the watchdog gives up is collected, not reported as a stall", async (t) => {
+  const { env, collector, nudges } = setupPaced(t, { mode: "count", count: 50 });
+  for (const code of ["A", "B", "C", "D"]) env.addTile(code);
+
+  // The site answers only the last scroll, and only at the instant that
+  // scroll's wait runs out. Its timer is set just after the watchdog's, so
+  // both fire in the same tick with the watchdog's first.
+  env.window.scrollTo = () => {
+    nudges.push(Date.now());
+    if (nudges.length < SCROLLS) return;
+    queueMicrotask(() =>
+      setTimeout(() => collector.acceptPage(reelsPage(["D"], false, 3)), SCROLL_WAIT_MS),
+    );
+  };
+
+  collector.acceptPage(reelsPage(["A", "B", "C"], true));
+  await advance(t, RUN_OUT_MS);
+
+  const result = await collector.finished();
+  assert.equal(nudges.length, SCROLLS, "the page answered the final scroll");
+  assert.equal(result.reason, "feed-exhausted");
+  assert.deepEqual(result.items.map((i) => i.code), ["A", "B", "C", "D"]);
+  env.teardown();
+});
+
+test("stop while a page is queued keeps what was collected", async (t) => {
+  const { env, collector, signal, nudges } = setupPaced(t, { mode: "count", count: 50 });
+  for (const code of ["A", "B", "C", "D", "E"]) env.addTile(code);
+
+  collector.acceptPage(reelsPage(["A", "B", "C"], true));
+  await advance(t, PACE.minMs / 2);
+  collector.acceptPage(reelsPage(["D", "E"], false, 3));
+  signal.stop();
+
+  const result = await collector.finished();
+  assert.equal(result.reason, "stopped");
+  assert.deepEqual(result.items.map((i) => i.code), ["A", "B", "C"]);
+
+  // Stop is final: the queued page is not picked up afterwards.
+  await advance(t, RUN_OUT_MS);
+  assert.equal(result.items.length, 3);
+  assert.equal(nudges.length, 0);
   env.teardown();
 });
