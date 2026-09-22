@@ -1,0 +1,70 @@
+name: Pages
+
+# Publishes the landing page at https://andreadorizza.github.io/open-feed-sorter/.
+#
+# One-time setup: Settings → Pages → Source must be "GitHub Actions". Until it
+# is, the deploy job fails with a 404 from the Pages API.
+
+on:
+  push:
+    branches: [main]
+    # Only what ends up on the page. src/manifest.json is here because the
+    # page shows the version it declares.
+    paths:
+      - 'site/**'
+      - 'store/screenshots/**'
+      - 'store/landing/**'
+      - 'store/graphics/**'
+      - 'src/icons/**'
+      - 'src/fonts/**'
+      - 'src/manifest.json'
+      - '.github/workflows/pages.yml'
+  # Lets you republish by hand, e.g. after changing the Pages settings.
+  workflow_dispatch:
+
+# One deploy at a time. A newer push waits rather than cancelling the one in
+# flight, so a deploy is never cut off halfway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The same script you run locally, so what you previewed is what ships.
+      # It fails on an unfilled {{placeholder}}, a reference to a file that
+      # isn't in the output, a dead #anchor, or anything that would make the
+      # page load a resource from another host. See site/build.mjs.
+      - name: Assemble site
+        run: node site/build.mjs _site
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

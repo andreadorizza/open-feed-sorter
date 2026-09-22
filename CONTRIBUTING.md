@@ -70,14 +70,14 @@ the *built* extension rather than the source: every manifest path and
 `getURL` asset exists, every bundle parses, no bundle reaches a host outside
 the two platforms, and no permission crept into the manifest. That last pair
 are the ones worth knowing about — this extension promises it makes no network
-requests of its own and asks for one permission, and the check is what keeps
-those true. If you add a permission on purpose, update `EXPECTED_PERMISSIONS`
-in `scripts/verify-dist.mjs` in the same commit, so the change is visible in
-review.
+requests of its own and asks for no API permissions, only host permissions for
+the two sites, and the check is what keeps those true. If you add a permission
+on purpose, update `EXPECTED_PERMISSIONS` in `scripts/verify-dist.mjs` in the
+same commit, so the change is visible in review.
 
 Anything in `core/` or `adapters/` should be tested directly. DOM-level
 behaviour — the collector, the grid, the network hooks — is tested against jsdom
-via `test/helpers/dom.js`.
+via `test-utils/dom.js`.
 
 A bug fix should come with the test that would have caught it.
 

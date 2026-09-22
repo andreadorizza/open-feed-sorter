@@ -199,7 +199,11 @@ Then:
 3. Add both to `ENTRIES` in `build.mjs`.
 4. Add two `content_scripts` blocks and a `host_permissions` entry to
    `src/manifest.json` — one isolated (`document_idle`), one `world: "MAIN"`
-   (`document_start`).
+   (`document_start`). Add the host to `ALLOWED_HOSTS` in
+   `scripts/verify-dist.mjs` too, or the build check rejects both the new host
+   permission and the adapter's URLs. A new site changes what Chrome's install
+   prompt says, so update the Permissions table in the README and
+   [PRIVACY.md](../PRIVACY.md) in the same change.
 5. Write adapter tests. `test/adapters.test.js` is the pattern; no browser
    needed.
 
@@ -223,11 +227,11 @@ please say so in an issue.
 ## Testing
 
 ```bash
-npm test          # 112 tests, no browser
+npm test          # 120 tests, no browser
 ```
 
 `core/` and `adapters/` are pure and tested directly. The collector, grid and
-network hooks are tested against jsdom (`test/helpers/dom.js`), which exercises
+network hooks are tested against jsdom (`test-utils/dom.js`), which exercises
 the real waiting and DOM capture rather than mocking them away.
 
 The ZIP and XLSX writers are verified against the system `unzip` — CRC checks

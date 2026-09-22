@@ -15,7 +15,8 @@
     "clean": "rm -rf dist",
     "verify": "node scripts/verify-dist.mjs",
     "icons": "node scripts/make-icons.mjs",
-    "ci": "npm test && npm run build && npm run verify"
+    "ci": "npm test && npm run build && npm run verify",
+    "package": "npm run build && npm run verify && node scripts/package.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

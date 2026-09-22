@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Open Feed Sorter",
+  "name": "Open Feed Sorter for Instagram and TikTok",
   "short_name": "Feed Sorter",
   "version": "0.1.0",
-  "description": "Free and open source: sort any Instagram or TikTok profile by views, likes, comments or outlier score, then export. No account.",
+  "description": "Free and open source: sort Instagram Reels and posts or TikTok videos by views, likes, comments or outlier score. Export to CSV.",
+  "homepage_url": "https://github.com/andreadorizza/open-feed-sorter",
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -22,9 +23,6 @@
   "background": {
     "service_worker": "background/service-worker.js"
   },
-  "permissions": [
-    "tabs"
-  ],
   "host_permissions": [
     "https://www.instagram.com/*",
     "https://www.tiktok.com/*"

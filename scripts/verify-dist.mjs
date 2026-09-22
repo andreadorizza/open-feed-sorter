@@ -93,11 +93,31 @@ for (const file of bundles) {
 }
 
 // 5. Permissions should stay minimal; a new one is a deliberate decision, not
-//    something that should slip in unnoticed.
-const EXPECTED_PERMISSIONS = ["tabs"];
+//    something that should slip in unnoticed. There are none: every chrome.tabs
+//    call the popup makes works without one, and the host permissions below
+//    are what let it read the active tab's URL on the two sites.
+const EXPECTED_PERMISSIONS = [];
 const extra = (manifest.permissions ?? []).filter((p) => !EXPECTED_PERMISSIONS.includes(p));
 if (extra.length) {
   fail(`unexpected permissions: ${extra.join(", ")} — update EXPECTED_PERMISSIONS if intended`);
+}
+
+// 6. Host access is what the install prompt spells out, so it gets the same
+//    guard: exactly the two platforms, and no content script matching more.
+//    A missing one fails too — without it the popup cannot recognise a tab on
+//    that site that was open before the extension loaded.
+const EXPECTED_HOST_PERMISSIONS = ALLOWED_HOSTS.map((host) => `https://${host}/*`);
+const hostPermissions = manifest.host_permissions ?? [];
+const extraHosts = hostPermissions.filter((p) => !EXPECTED_HOST_PERMISSIONS.includes(p));
+const missingHosts = EXPECTED_HOST_PERMISSIONS.filter((p) => !hostPermissions.includes(p));
+if (extraHosts.length) fail(`unexpected host_permissions: ${extraHosts.join(", ")}`);
+if (missingHosts.length) fail(`missing host_permissions: ${missingHosts.join(", ")}`);
+
+const extraMatches = (manifest.content_scripts ?? [])
+  .flatMap((cs) => cs.matches ?? [])
+  .filter((pattern) => !EXPECTED_HOST_PERMISSIONS.includes(pattern));
+if (extraMatches.length) {
+  fail(`content scripts match beyond the two platforms: ${[...new Set(extraMatches)].join(", ")}`);
 }
 
 if (problems.length) {

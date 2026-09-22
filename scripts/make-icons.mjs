@@ -101,8 +101,9 @@ const SIZES = {
   16: { bitmap: BARS, pitch: 2, dot: 2, ghost: false },
   32: { border: 1, bitmap: BARS, pitch: 4, dot: 3 },
   48: { border: 2, bitmap: BARS, pitch: 6, dot: 5 },
-  // The store and install dialog expect artwork inset in a 128 canvas.
-  128: { pad: 8, border: 4, bitmap: BARS, pitch: 14, dot: 12 },
+  // The store and install dialog expect ~96px of artwork inset by 16px of
+  // transparent padding in a 128 canvas.
+  128: { pad: 16, border: 4, bitmap: BARS, pitch: 12, dot: 10 },
 };
 
 const dir = resolve(import.meta.dirname, "..", "src", "icons");

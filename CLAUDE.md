@@ -6,8 +6,9 @@
 npm install
 npm run build     # → dist/   (load unpacked in chrome://extensions)
 npm run watch     # rebuild on change
-npm test          # 112 tests, no browser
+npm test          # 120 tests, no browser
 npm run ci        # test → build → verify: what CI runs
+npm run package   # build → verify → release/open-feed-sorter-<version>.zip
 ```
 
 ## Where things go
@@ -40,7 +41,9 @@ why a run reloads the tab. Read it before changing the run lifecycle.
 - **No servers, no telemetry, no accounts.** `scripts/verify-dist.mjs` enforces
   this — a bundle referencing an unexpected host fails CI. Adding a permission
   means updating `EXPECTED_PERMISSIONS` in the same commit, so it is visible in
-  review.
+  review. There are none today; host access is pinned to `ALLOWED_HOSTS` the
+  same way. Both change what Chrome's install prompt says, and
+  [PRIVACY.md](PRIVACY.md) has to change with them.
 
 ## Communication
 

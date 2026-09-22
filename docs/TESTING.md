@@ -13,7 +13,7 @@ npm install
 npm test
 ```
 
-112 tests, ~7 s. No browser, no network, no accounts.
+120 tests, ~7 s. No browser, no network, no accounts.
 
 | Area | What it covers |
 |---|---|
@@ -24,6 +24,7 @@ npm test
 | `toolbar` | outlier option when unscorable, re-sort survives a rebuild |
 | `net-hooks` | interception, clone-don't-consume, malformed bodies |
 | `session` | the reload handshake and its re-run guard |
+| `package` | the store zip: `manifest.json` at the root, no dotfiles, every file intact |
 
 The ZIP and XLSX writers are checked against the system `unzip` (CRC and
 part-by-part structure), because a subtly malformed spreadsheet fails at the
@@ -72,6 +73,7 @@ counts — and on a TikTok profile.
 | A **photo-only** Instagram profile | No view counts anywhere; likes must still sort, no empty Views column in exports |
 | A **date range** run | Progress bar is driven by dates, not a count |
 | **Everything** on a large profile | The long path — watch for stalls |
+| The popup on a **tab opened before install**, and on an **unrelated site** | The first should offer *Reload tab*; the second, links to both sites. The popup reads the tab's URL through the host permissions alone, so a manifest change can quietly break the first |
 
 ---
 
@@ -133,8 +135,8 @@ npm run ci        # test, build, verify — the same three steps CI runs
 ```
 
 `npm run verify` inspects the built extension: manifest paths, `getURL`
-assets, bundle syntax, network hosts and permissions. It is what catches a
-build that compiles but that Chrome would refuse to load.
+assets, bundle syntax, network hosts, permissions and host access. It is what
+catches a build that compiles but that Chrome would refuse to load.
 
 
 and run §2 on at least one profile per platform you touched. A bug fix should

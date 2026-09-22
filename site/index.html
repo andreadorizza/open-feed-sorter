@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Open Feed Sorter: sort Instagram and TikTok profiles by views</title>
+    <meta
+      name="description"
+      content="Free Chrome extension. Sort any Instagram or TikTok profile by views, likes, comments or outlier score, then export to CSV, Excel or JSON. No account."
+    />
+    <link rel="canonical" href="{{SITE_URL}}" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#c7e3ab" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e170b" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Open Feed Sorter" />
+    <meta property="og:title" content="Open Feed Sorter: sort Instagram and TikTok profiles by views" />
+    <meta
+      property="og:description"
+      content="A free, open-source Chrome extension that sorts any profile by views, likes, comments or outlier score, and exports the results. It makes no network requests of its own."
+    />
+    <meta property="og:url" content="{{SITE_URL}}" />
+    <meta property="og:image" content="{{SITE_URL}}graphics/og-1200x630.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Open Feed Sorter: a profile grid sorted by views, with outlier scores on each post." />
+    <meta property="og:locale" content="en_GB" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Open Feed Sorter: sort Instagram and TikTok profiles by views" />
+    <meta
+      name="twitter:description"
+      content="Free Chrome extension: sort any Instagram or TikTok profile by views, likes, comments or outlier score, then export to CSV, Excel or JSON."
+    />
+    <meta name="twitter:image" content="{{SITE_URL}}graphics/og-1200x630.png" />
+    <meta name="twitter:image:alt" content="Open Feed Sorter: a profile grid sorted by views, with outlier scores on each post." />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png" />
+    <link rel="apple-touch-icon" href="icons/icon-128.png" />
+
+    <link rel="preload" href="fonts/MatrixSansScreen-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="style.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Open Feed Sorter",
+        "description": "Sort any Instagram or TikTok profile by views, likes, comments, shares, saves or outlier score, then export the results to CSV, Excel or JSON. Runs entirely in the browser tab.",
+        "url": "{{SITE_URL}}",
+        "applicationCategory": "BrowserApplication",
+        "operatingSystem": "Chrome",
+        "softwareVersion": "{{VERSION}}",
+        "installUrl": "{{INSTALL_URL}}",
+        "license": "https://opensource.org/licenses/MIT",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "image": "{{SITE_URL}}graphics/og-1200x630.png",
+        "screenshot": "{{SITE_URL}}screenshots/01-sorted-grid.png",
+        "author": { "@type": "Person", "name": "Andrea Dorizza", "url": "https://github.com/andreadorizza" },
+        "sameAs": "https://github.com/andreadorizza/open-feed-sorter"
+      }
+    </script>
+  </head>
+
+  <body>
+    <!--
+      Dot-matrix icons, drawn on the same 5×7 grid as the font and the tiles'
+      own icons (src/content/runtime/dots.js). The font has no play, heart or
+      arrow glyphs, and a fallback font's outline glyph would break the look.
+    -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+      <symbol id="dot-views" viewBox="-0.5 0 6 7"><path d="M0.07 0.07h0.86v0.86h-0.86zM0.07 1.07h0.86v0.86h-0.86zM1.07 1.07h0.86v0.86h-0.86zM0.07 2.07h0.86v0.86h-0.86zM1.07 2.07h0.86v0.86h-0.86zM2.07 2.07h0.86v0.86h-0.86zM0.07 3.07h0.86v0.86h-0.86zM1.07 3.07h0.86v0.86h-0.86zM2.07 3.07h0.86v0.86h-0.86zM3.07 3.07h0.86v0.86h-0.86zM0.07 4.07h0.86v0.86h-0.86zM1.07 4.07h0.86v0.86h-0.86zM2.07 4.07h0.86v0.86h-0.86zM0.07 5.07h0.86v0.86h-0.86zM1.07 5.07h0.86v0.86h-0.86zM0.07 6.07h0.86v0.86h-0.86z" /></symbol>
+      <symbol id="dot-likes" viewBox="-0.5 0 6 7"><path d="M0.07 1.07h0.86v0.86h-0.86zM1.07 1.07h0.86v0.86h-0.86zM3.07 1.07h0.86v0.86h-0.86zM4.07 1.07h0.86v0.86h-0.86zM0.07 2.07h0.86v0.86h-0.86zM1.07 2.07h0.86v0.86h-0.86zM2.07 2.07h0.86v0.86h-0.86zM3.07 2.07h0.86v0.86h-0.86zM4.07 2.07h0.86v0.86h-0.86zM0.07 3.07h0.86v0.86h-0.86zM1.07 3.07h0.86v0.86h-0.86zM2.07 3.07h0.86v0.86h-0.86zM3.07 3.07h0.86v0.86h-0.86zM4.07 3.07h0.86v0.86h-0.86zM1.07 4.07h0.86v0.86h-0.86zM2.07 4.07h0.86v0.86h-0.86zM3.07 4.07h0.86v0.86h-0.86zM2.07 5.07h0.86v0.86h-0.86z" /></symbol>
+      <symbol id="dot-comments" viewBox="-0.5 0 6 7"><path d="M0.07 1.07h0.86v0.86h-0.86zM1.07 1.07h0.86v0.86h-0.86zM2.07 1.07h0.86v0.86h-0.86zM3.07 1.07h0.86v0.86h-0.86zM4.07 1.07h0.86v0.86h-0.86zM0.07 2.07h0.86v0.86h-0.86zM4.07 2.07h0.86v0.86h-0.86zM0.07 3.07h0.86v0.86h-0.86zM4.07 3.07h0.86v0.86h-0.86zM0.07 4.07h0.86v0.86h-0.86zM1.07 4.07h0.86v0.86h-0.86zM2.07 4.07h0.86v0.86h-0.86zM3.07 4.07h0.86v0.86h-0.86zM4.07 4.07h0.86v0.86h-0.86zM0.07 5.07h0.86v0.86h-0.86zM1.07 5.07h0.86v0.86h-0.86zM0.07 6.07h0.86v0.86h-0.86z" /></symbol>
+      <symbol id="dot-shares" viewBox="-0.5 0 6 7"><path d="M2.07 1.07h0.86v0.86h-0.86zM3.07 1.07h0.86v0.86h-0.86zM4.07 1.07h0.86v0.86h-0.86zM3.07 2.07h0.86v0.86h-0.86zM4.07 2.07h0.86v0.86h-0.86zM2.07 3.07h0.86v0.86h-0.86zM4.07 3.07h0.86v0.86h-0.86zM1.07 4.07h0.86v0.86h-0.86zM0.07 5.07h0.86v0.86h-0.86z" /></symbol>
+      <symbol id="dot-saves" viewBox="-0.5 0 6 7"><path d="M0.07 0.07h0.86v0.86h-0.86zM1.07 0.07h0.86v0.86h-0.86zM2.07 0.07h0.86v0.86h-0.86zM3.07 0.07h0.86v0.86h-0.86zM4.07 0.07h0.86v0.86h-0.86zM0.07 1.07h0.86v0.86h-0.86zM4.07 1.07h0.86v0.86h-0.86zM0.07 2.07h0.86v0.86h-0.86zM4.07 2.07h0.86v0.86h-0.86zM0.07 3.07h0.86v0.86h-0.86zM4.07 3.07h0.86v0.86h-0.86zM0.07 4.07h0.86v0.86h-0.86zM2.07 4.07h0.86v0.86h-0.86zM4.07 4.07h0.86v0.86h-0.86zM0.07 5.07h0.86v0.86h-0.86zM1.07 5.07h0.86v0.86h-0.86zM3.07 5.07h0.86v0.86h-0.86zM4.07 5.07h0.86v0.86h-0.86zM0.07 6.07h0.86v0.86h-0.86zM4.07 6.07h0.86v0.86h-0.86z" /></symbol>
+      <symbol id="dot-caret" viewBox="-0.5 0 6 7"><path d="M0.07 2.07h0.86v0.86h-0.86zM1.07 2.07h0.86v0.86h-0.86zM2.07 2.07h0.86v0.86h-0.86zM3.07 2.07h0.86v0.86h-0.86zM4.07 2.07h0.86v0.86h-0.86zM1.07 3.07h0.86v0.86h-0.86zM2.07 3.07h0.86v0.86h-0.86zM3.07 3.07h0.86v0.86h-0.86zM2.07 4.07h0.86v0.86h-0.86z" /></symbol>
+      <symbol id="dot-bars" viewBox="0 0 7 7"><path d="M0.07 0.07h0.86v0.86h-0.86zM0.07 1.07h0.86v0.86h-0.86zM0.07 2.07h0.86v0.86h-0.86zM2.07 2.07h0.86v0.86h-0.86zM0.07 3.07h0.86v0.86h-0.86zM2.07 3.07h0.86v0.86h-0.86zM0.07 4.07h0.86v0.86h-0.86zM2.07 4.07h0.86v0.86h-0.86zM4.07 4.07h0.86v0.86h-0.86zM0.07 5.07h0.86v0.86h-0.86zM2.07 5.07h0.86v0.86h-0.86zM4.07 5.07h0.86v0.86h-0.86zM6.07 5.07h0.86v0.86h-0.86zM0.07 6.07h0.86v0.86h-0.86zM2.07 6.07h0.86v0.86h-0.86zM4.07 6.07h0.86v0.86h-0.86zM6.07 6.07h0.86v0.86h-0.86z" /></symbol>
+      <!-- One LCD pixel per user unit, for the chart and its legend. -->
+      <defs>
+        <pattern id="px-unlit" width="1" height="1" patternUnits="userSpaceOnUse"><rect class="px--unlit" x="0.07" y="0.07" width="0.86" height="0.86" /></pattern>
+        <pattern id="px-lit" width="1" height="1" patternUnits="userSpaceOnUse"><rect class="px--lit" x="0.07" y="0.07" width="0.86" height="0.86" /></pattern>
+        <pattern id="px-off" width="1" height="1" patternUnits="userSpaceOnUse"><rect class="px--off" x="0.2" y="0.2" width="0.6" height="0.6" /></pattern>
+      </defs>
+    </svg>
+
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="masthead">
+      <div class="wrap masthead__inner">
+        <a class="brand" href="./" aria-label="Open Feed Sorter, home">
+          <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 7 7"><use href="#dot-bars" /></svg></span>
+          <span>Open Feed Sorter</span>
+        </a>
+        <nav class="nav" aria-label="Page">
+          <ul>
+            <li class="nav__section"><a href="#how">How it works</a></li>
+            <li class="nav__section"><a href="#outliers">Outlier score</a></li>
+            <li class="nav__section"><a href="#privacy">Privacy</a></li>
+            <li class="nav__section"><a href="#faq">FAQ</a></li>
+            <li><a class="nav__out" href="https://github.com/andreadorizza/open-feed-sorter">GitHub</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="wrap">
+          <p class="hero__status">v{{VERSION}} · Free · MIT licence · Chrome on desktop</p>
+          <h1 id="hero-title">Sort any Instagram or TikTok profile by <mark>views</mark></h1>
+
+          <div class="hero__grid">
+            <div>
+              <p class="hero__lead">
+                Profile grids run in posting order and hide most of the numbers. Open Feed Sorter
+                reads the counts the page already loaded and lays the grid out again best-first, with
+                each post's numbers and outlier score on its tile. Re-sort it, or export it to CSV,
+                Excel or JSON.
+              </p>
+
+              <!-- The install link, label and note come from site/build.mjs
+                   (CHROME_WEB_STORE_URL). Change them there, not here. -->
+              <div class="hero__actions">
+                <a class="button button--primary" href="{{INSTALL_URL}}">{{INSTALL_LABEL}}</a>
+                <a href="#how">How it works</a>
+              </div>
+              <p class="hero__note">{{INSTALL_NOTE}}</p>
+            </div>
+
+            <figure class="shot">
+              <div class="shot__frame">
+                <picture>
+                  <source srcset="screenshots/01-sorted-grid-dark.png" media="(prefers-color-scheme: dark)" />
+                  <img
+                    src="screenshots/01-sorted-grid.png"
+                    width="1280"
+                    height="800"
+                    fetchpriority="high"
+                    alt="A demo bakery profile after sorting: the extension's toolbar above the grid, and each post labelled with its rank, its outlier score, and its views, likes, comments and date."
+                  />
+                </picture>
+              </div>
+              <figcaption>
+                A demo profile after sorting. Each post keeps its own thumbnail and gains a rank, an
+                outlier score and every count the platform reports for it.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="how" aria-labelledby="how-title">
+        <div class="wrap">
+          <div class="section__head"><h2 id="how-title">How it works</h2></div>
+
+          <ol class="steps">
+            <li class="step">
+              <div>
+                <span class="step__num" aria-hidden="true">1</span>
+                <h3>Open a profile</h3>
+                <p>
+                  Any Instagram or TikTok profile you can see, yours or anyone's. On Instagram, the
+                  Posts or the Reels tab.
+                </p>
+              </div>
+              <div class="demo step__demo" aria-hidden="true">
+                <div class="demo__row"><span class="demo__dim">instagram.com/</span>username</div>
+                <div class="demo__row"><span class="demo__dim">tiktok.com/</span>@username</div>
+              </div>
+            </li>
+
+            <li class="step">
+              <div>
+                <span class="step__num" aria-hidden="true">2</span>
+                <h3>Pick a sort</h3>
+                <p>
+                  Click the extension's icon and choose what to sort by and how much to collect: the
+                  latest 25 posts up to the whole feed, or a date range. Then press
+                  <em>Sort this profile</em>.
+                </p>
+              </div>
+              <div class="demo step__demo" aria-hidden="true">
+                <div class="demo__head">
+                  <div class="demo__caps">Open Feed Sorter</div>
+                  <div class="demo__dim">TikTok · Videos · @username</div>
+                </div>
+                <div class="demo__body">
+                  <div class="demo__label">Sort by</div>
+                  <div class="demo__select">Most views <svg class="dots"><use href="#dot-caret" /></svg></div>
+                  <div class="demo__label">How many posts</div>
+                  <div class="demo__select">Latest 250 <svg class="dots"><use href="#dot-caret" /></svg></div>
+                  <div class="demo__go">Sort this profile</div>
+                </div>
+              </div>
+            </li>
+
+            <li class="step">
+              <div>
+                <span class="step__num" aria-hidden="true">3</span>
+                <h3>Let it collect</h3>
+                <p>
+                  The tab reloads, then scrolls itself while it reads the feed
+                  (<a href="#why-reload">why it reloads</a>). Press Stop at any point and keep what it
+                  has. When it finishes, the grid comes back best-first with a toolbar above it for
+                  re-sorting and export, and <em>Show original feed</em> puts everything back.
+                </p>
+              </div>
+              <div class="demo demo--banner step__demo" aria-hidden="true">
+                <div class="demo__grow">
+                  <div class="demo__caps">Sorting latest 250 posts by most views…</div>
+                  <div class="demo__dim">Collected 112 of 250</div>
+                  <div class="demo__track"><div class="demo__fill"></div></div>
+                </div>
+                <div class="demo__stop">Stop</div>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section" id="outliers" aria-labelledby="outliers-title">
+        <div class="wrap">
+          <div class="section__head"><h2 id="outliers-title">What <span class="score">3.4x</span> means</h2></div>
+
+          <p class="section__intro">
+            Every tile carries an outlier score, whatever you sorted by. <span class="score">3.4x</span>
+            means the post got 3.4 times this account's recent median. Scores of
+            <span class="score">2x</span> and above are drawn inverted, so they stand out in the grid.
+          </p>
+
+          <figure class="chart">
+            <figcaption id="chart-caption">
+              Example: one account's latest 28 posts, oldest on the left. Each column is a post, and
+              its height is the post's views.
+            </figcaption>
+
+            <div class="chart__plot">
+              <div class="chart__axis" aria-hidden="true"><span>Median<br />12.4K</span></div>
+
+              <div class="chart__canvas">
+                <svg viewBox="-1 0 88 32" role="img" aria-labelledby="chart-caption chart-desc">
+                  <desc id="chart-desc">
+                    Twenty-five of the posts are counted, and their median is 12.4K views. One of them
+                    has 41.9K views, which scores 3.4x. A pinned post and the two posts under three
+                    days old are drawn hollow because they are left out of the median.
+                  </desc>
+                  <rect x="-1" y="0" width="88" height="32" fill="url(#px-unlit)" />
+
+                  <!-- Left out of the median: the pinned post, and two under three days old. -->
+                  <g fill="url(#px-off)">
+                    <rect x="12" y="10" width="2" height="22" />
+                    <rect x="81" y="28" width="2" height="4" />
+                    <rect x="84" y="30" width="2" height="2" />
+                  </g>
+
+                  <!-- The 25 most recent posts older than three days. Median: 8 rows. -->
+                  <g class="chart__lit" fill="url(#px-lit)">
+                    <rect x="0" y="23" width="2" height="9" />
+                    <rect x="3" y="25" width="2" height="7" />
+                    <rect x="6" y="20" width="2" height="12" />
+                    <rect x="9" y="27" width="2" height="5" />
+                    <rect x="15" y="24" width="2" height="8" />
+                    <rect x="18" y="22" width="2" height="10" />
+                    <rect x="21" y="26" width="2" height="6" />
+                    <rect x="24" y="24" width="2" height="8" />
+                    <rect x="27" y="18" width="2" height="14" />
+                    <rect x="30" y="25" width="2" height="7" />
+                    <rect x="33" y="23" width="2" height="9" />
+                    <rect x="36" y="28" width="2" height="4" />
+                    <rect x="39" y="24" width="2" height="8" />
+                    <rect x="42" y="5" width="2" height="27" />
+                    <rect x="45" y="21" width="2" height="11" />
+                    <rect x="48" y="24" width="2" height="8" />
+                    <rect x="51" y="26" width="2" height="6" />
+                    <rect x="54" y="19" width="2" height="13" />
+                    <rect x="57" y="23" width="2" height="9" />
+                    <rect x="60" y="29" width="2" height="3" />
+                    <rect x="63" y="22" width="2" height="10" />
+                    <rect x="66" y="24" width="2" height="8" />
+                    <rect x="69" y="16" width="2" height="16" />
+                    <rect x="72" y="27" width="2" height="5" />
+                    <rect x="75" y="25" width="2" height="7" />
+                  </g>
+
+                  <line class="chart__rule-gap" x1="-1" y1="24" x2="77.5" y2="24" />
+                  <line class="chart__rule" x1="-1" y1="24" x2="77.5" y2="24" />
+                  <line class="chart__cutoff" x1="79" y1="0" x2="79" y2="32" />
+                </svg>
+
+                <span class="chart__tag chart__tag--off chart__tag--pin" aria-hidden="true">Pinned</span>
+                <span class="chart__tag chart__tag--hot" aria-hidden="true">3.4x</span>
+                <span class="chart__tag chart__tag--off chart__tag--new" aria-hidden="true">&lt;3 days</span>
+              </div>
+
+              <div class="chart__time" aria-hidden="true"><span>Oldest</span><span>Newest</span></div>
+            </div>
+
+            <ul class="legend">
+              <li>
+                <svg class="legend__key" viewBox="0 0 2 2" aria-hidden="true"><rect width="2" height="2" fill="url(#px-lit)" /></svg>
+                <span>Counted: the 25 most recent posts older than three days.</span>
+              </li>
+              <li>
+                <svg class="legend__key" viewBox="0 0 2 2" aria-hidden="true"><rect width="2" height="2" fill="url(#px-off)" /></svg>
+                <span>Left out: the pinned post, and the two under three days old.</span>
+              </li>
+              <li>
+                <svg class="legend__key legend__key--rule" viewBox="0 0 4 3" aria-hidden="true"><line class="chart__rule" x1="0" y1="1.5" x2="4" y2="1.5" /></svg>
+                <span>The median of the 25 counted posts: 12.4K views.</span>
+              </li>
+              <li>
+                <span class="legend__chip">3.4x</span>
+                <span>41.9K views ÷ 12.4K = 3.4 times the median.</span>
+              </li>
+            </ul>
+          </figure>
+
+          <h3>How the median is taken</h3>
+          <ul class="rules">
+            <li>
+              It comes from the account's 25 most recent posts that are more than three days old.
+            </li>
+            <li>
+              Pinned posts are left out. Both platforms float them to the top whatever their age, and
+              they're usually an account's best work.
+            </li>
+            <li>
+              Posts under three days old are left out too. They're still picking up views and would
+              drag the median down.
+            </li>
+            <li>
+              A median ignores how big the biggest posts are, so one viral post can't lift the
+              baseline and hide every other outlier.
+            </li>
+            <li>
+              With fewer than 20 qualifying posts there is no score, and the toolbar says so. A short
+              run, such as the latest 25, reads up to 48 older posts in the background to find
+              enough. Those never join the grid.
+            </li>
+            <li>
+              Scores are measured in views. An Instagram Posts grid is scored on likes, because photos
+              have no view count.
+            </li>
+            <li>
+              Each post is measured against its own account's median. Reach on both platforms now
+              comes mostly from recommendations, so a score based on follower count would make a
+              small account with one recommended video look like a permanent outlier.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <div class="wrap">
+          <div class="section__head"><h2 id="features-title">What you get</h2></div>
+
+          <dl class="spec">
+            <div class="spec__row">
+              <dt>Sort by</dt>
+              <dd>
+                <p>
+                  Most views, likes, comments, shares or saves, newest or oldest first, or biggest
+                  outliers. Instagram reports views, likes and comments; TikTok adds shares and saves.
+                </p>
+                <ul class="keys" aria-label="Counts shown on each tile">
+                  <li><svg class="dots" aria-hidden="true"><use href="#dot-views" /></svg>Views</li>
+                  <li><svg class="dots" aria-hidden="true"><use href="#dot-likes" /></svg>Likes</li>
+                  <li><svg class="dots" aria-hidden="true"><use href="#dot-comments" /></svg>Comments</li>
+                  <li><svg class="dots" aria-hidden="true"><use href="#dot-shares" /></svg>Shares</li>
+                  <li><svg class="dots" aria-hidden="true"><use href="#dot-saves" /></svg>Saves</li>
+                </ul>
+              </dd>
+            </div>
+            <div class="spec__row">
+              <dt>How much</dt>
+              <dd>
+                The latest 25, 50, 100, 250 or 500 posts, or everything. Or a date range: the last
+                week, month, 3 months, 6 months, year, or all time.
+              </dd>
+            </div>
+            <div class="spec__row">
+              <dt>On every tile</dt>
+              <dd>
+                The rank, the outlier score and every count the platform reports, all at once.
+                Instagram itself shows likes and comments only on hover, one post at a time.
+              </dd>
+            </div>
+            <div class="spec__row">
+              <dt>Re-sort</dt>
+              <dd>
+                Everything collected stays in the tab's memory, so switching from views to comments
+                redraws the grid straight away without collecting again.
+              </dd>
+            </div>
+            <div class="spec__row">
+              <dt>Export</dt>
+              <dd>
+                <p>
+                  CSV, Excel (.xlsx) or JSON, built inside the tab and saved as an
+                  ordinary download. One row per post, with a column for each count the posts have:
+                </p>
+                <pre class="sample"><code>Profile,URL,Date,Views,Likes,Comments,Shares,Saves,Outlier,Caption</code></pre>
+              </dd>
+            </div>
+            <div class="spec__row">
+              <dt>Stop</dt>
+              <dd>
+                Stop keeps whatever has been collected so far and sorts it. Nothing is thrown away.
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="section band" id="privacy" aria-labelledby="privacy-title">
+        <div class="wrap">
+          <div class="section__head"><h2 id="privacy-title">Privacy</h2></div>
+
+          <p class="band__claim">The extension makes no network requests of its own.</p>
+          <div class="band__body">
+            <p>
+              It reads the feed responses Instagram or TikTok already sent to your tab and does all
+              of its work in that tab, exports included. There is no server for anything to go to.
+              During a sort, the only requests are the site's own, as it loads the next page of
+              posts when the page scrolls.
+            </p>
+          </div>
+
+          <div class="proofs">
+            <div class="proof">
+              <h3>What Chrome asks for</h3>
+              <pre><code>"host_permissions": [
+  "https://www.instagram.com/*",
+  "https://www.tiktok.com/*"
+]</code></pre>
+              <p>
+                That's the whole list, with no API permissions at all. Chrome's install prompt asks
+                for one thing: “Read and change your data on www.instagram.com and
+                www.tiktok.com”.
+              </p>
+            </div>
+            <div class="proof">
+              <h3>Checked on every build</h3>
+              <pre><code>const ALLOWED_HOSTS = [
+  "www.instagram.com",
+  "www.tiktok.com",
+];</code></pre>
+              <p>
+                CI fails if any of the extension's scripts refers to another host, or if a permission
+                appears that the check doesn't expect. The check is
+                <a href="https://github.com/andreadorizza/open-feed-sorter/blob/main/scripts/verify-dist.mjs">scripts/verify-dist.mjs</a>.
+              </p>
+            </div>
+          </div>
+
+          <p class="band__more">
+            <a href="https://github.com/andreadorizza/open-feed-sorter/blob/main/PRIVACY.md">Read the privacy policy</a>
+            for exactly what is read, what is kept and for how long. This page is plain HTML on GitHub
+            Pages; it runs no scripts and loads nothing from anywhere else.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="free" aria-labelledby="free-title">
+        <div class="wrap">
+          <div class="section__head"><h2 id="free-title">Why it's free</h2></div>
+
+          <div class="free__body">
+            <p>
+              Nothing is kept back for a paid tier. Collecting the latest 500 posts costs no more to
+              compute than the latest 25, and the computing happens in your own browser, so there's no
+              server bill to pass on.
+            </p>
+            <p>
+              The code is MIT-licensed and
+              <a href="https://github.com/andreadorizza/open-feed-sorter">on GitHub</a>, so you can
+              check anything this page says against it.
+            </p>
+            <p>
+              If it saves you time, a coffee on
+              <a href="https://ko-fi.com/andreadorizza">Ko-fi</a> is welcome and entirely optional. It
+              pays for nothing extra: there's no supporter build and no early access.
+            </p>
+          </div>
+
+          <div class="compare">
+            <h3>Compared with Sort Feed</h3>
+            <p class="compare__note">
+              Sort Feed is a paid Chrome extension for the same job, and it does more than this one:
+              YouTube and Facebook Reels, transcription, downloads and export to Google Sheets. Its
+              columns come from <a href="https://www.sortfeed.com/">sortfeed.com</a> as of September
+              2026; other extensions share the name, and this is that one. Its prices may have
+              changed since.
+            </p>
+
+            <div class="table-scroll" role="region" aria-labelledby="compare-caption" tabindex="0">
+              <table>
+                <caption id="compare-caption" class="visually-hidden">Sort Feed's free and Pro plans compared with Open Feed Sorter, as of September 2026</caption>
+                <thead>
+                  <tr>
+                    <td></td>
+                    <th scope="col">Sort Feed Free</th>
+                    <th scope="col">Sort Feed Pro</th>
+                    <th scope="col">Open Feed Sorter</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Price</th>
+                    <td>$0</td>
+                    <td>$9 a month billed yearly, or $14 month to month</td>
+                    <td>Free</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">How many posts</th>
+                    <td>Latest 25 posts or 1 week</td>
+                    <td>Any number, any date range</td>
+                    <td>Latest 25 up to the whole feed, or a range from the last week to all time</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Sites</th>
+                    <td>Instagram, TikTok, YouTube, Facebook Reels</td>
+                    <td>Instagram, TikTok, YouTube, Facebook Reels</td>
+                    <td>Instagram and TikTok</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Export</th>
+                    <td>Sorted data</td>
+                    <td>Sorted data plus transcripts</td>
+                    <td>CSV, Excel and JSON</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Transcription</th>
+                    <td>None</td>
+                    <td>500 minutes a month</td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Media download</th>
+                    <td>Unlimited</td>
+                    <td>Unlimited</td>
+                    <td>None</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="table-hint">The table scrolls sideways.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <div class="wrap">
+          <div class="section__head"><h2 id="faq-title">Questions</h2></div>
+
+          <div class="faq">
+            <details>
+              <summary><svg class="dots" aria-hidden="true"><use href="#dot-caret" /></svg>Is this against Instagram's or TikTok's terms?</summary>
+              <div class="faq__answer">
+                <p>
+                  Probably. Automating a site is generally against both platforms' terms of service,
+                  whoever does it, and this extension automates scrolling.
+                </p>
+                <p>
+                  It reads what the platform already sent to your browser, at the pace of a person
+                  scrolling, with a randomised pause between pages. It doesn't forge requests or use
+                  any login except the one you're already signed in with. A long run still pages
+                  through a lot of a feed, though. Use your own judgement about your own account, and
+                  prefer the smallest run that answers your question.
+                </p>
+              </div>
+            </details>
+
+            <details id="why-reload">
+              <summary><svg class="dots" aria-hidden="true"><use href="#dot-caret" /></svg>Why does the tab reload?</summary>
+              <div class="faq__answer">
+                <p>
+                  Both sites fetch a profile's first page of posts once, as the page loads. By the
+                  time you've opened the popup that response has come and gone, so the extension
+                  reloads the tab to be there for it.
+                </p>
+                <p>
+                  Your settings cross the reload in the tab's session storage and are deleted as soon
+                  as they're read, so refreshing by hand never restarts a sort. After that the
+                  extension scrolls, the site loads more posts by itself, and each page is read as it
+                  arrives. The
+                  <a href="https://github.com/andreadorizza/open-feed-sorter/blob/main/docs/ARCHITECTURE.md#why-the-reload">architecture notes</a>
+                  go into detail.
+                </p>
+              </div>
+            </details>
+
+            <details>
+              <summary><svg class="dots" aria-hidden="true"><use href="#dot-caret" /></svg>Will it break?</summary>
+              <div class="faq__answer">
+                <p>
+                  Sooner or later, yes. It's version 0.1, and Instagram and TikTok change their feed
+                  responses without notice. When that happens a sort usually hangs on
+                  <em>Scrolling the feed to collect posts…</em>, and the fix tends to be a few lines in
+                  one adapter file.
+                </p>
+                <p>
+                  If you run into it, please
+                  <a href="https://github.com/andreadorizza/open-feed-sorter/issues">open an issue</a>.
+                  The
+                  <a href="https://github.com/andreadorizza/open-feed-sorter/blob/main/CONTRIBUTING.md">contributing guide</a>
+                  shows how to find what moved, if you'd like to send the fix.
+                </p>
+              </div>
+            </details>
+
+            <details>
+              <summary><svg class="dots" aria-hidden="true"><use href="#dot-caret" /></svg>Does it work in Firefox, Safari, or on a phone?</summary>
+              <div class="faq__answer">
+                <p>
+                  Not for now. It's built and tested for Chrome on desktop only. Phone browsers don't
+                  run Chrome extensions.
+                </p>
+              </div>
+            </details>
+
+            <details>
+              <summary><svg class="dots" aria-hidden="true"><use href="#dot-caret" /></svg>What data leaves my browser?</summary>
+              <div class="faq__answer">
+                <p>
+                  None, from the extension. It makes no network requests of its own, and exports are
+                  built in the tab and saved as an ordinary download.
+                </p>
+                <p>
+                  During a sort, Instagram or TikTok see what they'd see if you scrolled the profile
+                  yourself: the site's own requests for the next page of posts, made with your
+                  session. What the extension collects stays in that tab's memory and is gone when
+                  you close or reload it. The
+                  <a href="https://github.com/andreadorizza/open-feed-sorter/blob/main/PRIVACY.md">privacy policy</a>
+                  lists every field it reads.
+                </p>
+              </div>
+            </details>
+
+            <details>
+              <summary><svg class="dots" aria-hidden="true"><use href="#dot-caret" /></svg>Do I need an account?</summary>
+              <div class="faq__answer">
+                <p>
+                  No, there's nothing to sign up for. It works with whichever Instagram or TikTok
+                  session is already open in the tab, and never touches your login details.
+                </p>
+              </div>
+            </details>
+
+            <details>
+              <summary><svg class="dots" aria-hidden="true"><use href="#dot-caret" /></svg>Can it transcribe videos or export to Google Sheets?</summary>
+              <div class="faq__answer">
+                <p>
+                  No. Transcription needs paid speech recognition and a Sheets export needs an OAuth
+                  client. Both mean running a server, and this project doesn't have one. Everything
+                  it does happens in the tab.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing" aria-labelledby="closing-title">
+        <div class="wrap">
+          <div class="closing__panel">
+            <div>
+              <h2 id="closing-title">Try it on a profile you know</h2>
+              <p>
+                Start with the latest 25 posts of an account whose numbers you already have a feel
+                for, and see whether the order matches your guess.
+              </p>
+            </div>
+            <div class="closing__actions">
+              <a class="button button--primary" href="{{INSTALL_URL}}">{{INSTALL_LABEL}}</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer__grid">
+        <p>Open Feed Sorter v{{VERSION}} by Andrea Dorizza.</p>
+        <ul>
+          <li><a href="https://github.com/andreadorizza/open-feed-sorter">Source on GitHub</a></li>
+          <li><a href="https://github.com/andreadorizza/open-feed-sorter/blob/main/PRIVACY.md">Privacy policy</a></li>
+          <li><a href="https://github.com/andreadorizza/open-feed-sorter/blob/main/LICENSE">MIT licence</a></li>
+          <li><a href="https://github.com/andreadorizza/open-feed-sorter/issues">Report a problem</a></li>
+          <li><a href="https://ko-fi.com/andreadorizza">Ko-fi</a></li>
+        </ul>
+        <p class="footer__legal">
+          Not affiliated with Instagram, Meta, TikTok or ByteDance. Set in Matrix Sans Screen, under
+          the <a href="fonts/OFL.txt">SIL Open Font License</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

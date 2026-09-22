@@ -1,0 +1,196 @@
+/*
+ * The fake profile page. Neutral greys only — it is scenery for the
+ * extension, and must not look like any real platform.
+ */
+
+:root {
+  --bg: #ffffff;
+  --surface: #f4f4f3;
+  --text: #161616;
+  --muted: #6c6c6c;
+  --line: #e3e3e1;
+  --chip: #ececea;
+  --solid: #262626;
+  --solid-text: #ffffff;
+  --tile: #e9e7e3;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101010;
+    --surface: #1a1a1a;
+    --text: #efefef;
+    --muted: #9b9b9b;
+    --line: #2a2a2a;
+    --chip: #232323;
+    --solid: #efefef;
+    --solid-text: #111111;
+    --tile: #1f1f1f;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── top bar ───────────────────────────────────────────────────────────── */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  /* At a fractional device scale the bar can land a device pixel below the
+     viewport edge; this covers the sliver of page that would show above it. */
+  box-shadow: 0 -3px 0 var(--bg);
+}
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  max-width: 980px;
+  height: 52px;
+  margin: 0 auto;
+  padding: 0 22px;
+}
+/* A placeholder mark: a plain rounded square, belonging to nobody. */
+.topbar__mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--solid);
+  opacity: 0.85;
+}
+.topbar__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 260px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 17px;
+  background: var(--surface);
+  color: var(--muted);
+}
+.topbar__lens {
+  width: 11px;
+  height: 11px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+.topbar__icons { display: flex; align-items: center; gap: 18px; margin-left: auto; }
+.ico { width: 20px; height: 20px; border: 2px solid var(--text); opacity: 0.75; }
+.ico--home { border-radius: 4px 4px 3px 3px; }
+.ico--bell { border-radius: 10px 10px 4px 4px; }
+.ico--plus { border-radius: 6px; position: relative; }
+.ico--plus::before, .ico--plus::after {
+  content: "";
+  position: absolute;
+  inset: 7px 3px;
+  background: var(--text);
+}
+.ico--plus::after { inset: 3px 7px; }
+.topbar__me { width: 28px; height: 28px; border-radius: 50%; }
+
+/* ── profile ───────────────────────────────────────────────────────────── */
+
+.page { max-width: 980px; margin: 0 auto; padding: 0 22px; }
+
+.profile {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 22px;
+  padding: 24px 0 18px;
+}
+.profile__avatar { width: 92px; height: 92px; border-radius: 50%; }
+.profile__titleRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.profile__name { margin: 0; font-size: 21px; font-weight: 650; letter-spacing: -0.01em; }
+.profile__demo {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--chip);
+  color: var(--muted);
+  font-size: 12px;
+}
+.profile__handle { margin: 2px 0 0; color: var(--muted); }
+.profile__stats { margin: 10px 0 0; color: var(--muted); }
+.profile__stats b { margin-left: 14px; color: var(--text); font-weight: 600; }
+.profile__stats b:first-child { margin-left: 0; }
+.profile__bio { margin: 8px 0 0; max-width: 460px; }
+.profile__actions { display: flex; gap: 8px; }
+.btn {
+  height: 34px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+.btn--solid { background: var(--solid); border-color: var(--solid); color: var(--solid-text); }
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.tabs__tab {
+  padding: 6px 14px;
+  border-radius: 16px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.tabs__tab.is-active { background: var(--chip); color: var(--text); }
+
+/* ── feed ──────────────────────────────────────────────────────────────── */
+
+.feed { padding-top: 6px; }
+.feed__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+.post { position: relative; }
+.post__link {
+  display: block;
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--tile);
+}
+.post__img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.feed__sentinel { height: 1px; }
+.feed__spinner { display: flex; justify-content: center; gap: 6px; padding: 22px 0; }
+.feed__spinner span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.35;
+}
+.feed__spinner span:nth-child(2) { opacity: 0.65; }
+.feed__spinner span:nth-child(3) { opacity: 1; }
+
+.footer {
+  min-height: 300px;
+  padding: 36px 0 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+.footer p { margin: 0 0 8px; }

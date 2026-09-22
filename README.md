@@ -13,8 +13,10 @@ score** — then export the results. No account, no backend, no paywall.
 
 Instagram will not tell you how a profile's posts performed. The grid shows no
 numbers; hover a tile and you get likes and comments one post at a time, never
-view counts. This extension reads the counts the page already fetched for its
-own rendering, and re-lays the grid out best-first.
+view counts. The app has started offering a "most viewed" order on a profile's
+Reels tab — one metric, on one tab, with nothing to compare or export. This
+extension reads the counts the page already fetched for its own rendering, and
+re-lays the grid out best-first.
 
 > **Status: v0.1, works but young.** Instagram and TikTok profile feeds are
 > supported and covered by tests. Expect breakage when either platform changes
@@ -50,7 +52,8 @@ one. Everything else runs entirely in the tab.
 
 ## Install
 
-No store listing yet. Build it and load it unpacked:
+A Chrome Web Store listing is on its way. Until it is up, build it and load it
+unpacked:
 
 ```bash
 git clone https://github.com/andreadorizza/open-feed-sorter
@@ -84,17 +87,21 @@ feed** puts everything back.
 
 There is no backend, no account and no analytics. The extension makes **zero**
 network requests of its own — it reads responses the page already received, and
-exports are generated locally. Nothing leaves your browser.
+exports are generated locally. Nothing leaves your browser. The
+[privacy policy](PRIVACY.md) spells out exactly what is read, what is kept and
+for how long.
 
 Permissions:
 
 | Permission | Why |
 |---|---|
-| `tabs` | The popup asks the active tab what profile it's on |
-| `host_permissions` for the two sites | Where the content scripts run |
+| `host_permissions` for `www.instagram.com` and `www.tiktok.com` | Where the content scripts run, and how the popup tells which of the two sites the active tab is on |
 
-That is the whole list. No `storage`, no `downloads`, no `webRequest`, no
-`externally_connectable`.
+That is the whole list. There are no API permissions at all: no `tabs`, no
+`storage`, no `downloads`, no `webRequest`, no `externally_connectable`. The
+popup finds, messages and reloads the active tab with calls that need none. So
+Chrome's install prompt asks for one thing: *Read and change your data on
+www.instagram.com and www.tiktok.com*.
 
 ---
 
@@ -127,9 +134,14 @@ src/
 ```bash
 npm run build    # → dist/
 npm run watch    # rebuild on change
-npm test         # 112 tests, no browser needed
+npm test         # 120 tests, no browser needed
 npm run ci       # test + build + verify the built extension (what CI runs)
+npm run package  # build + verify → release/open-feed-sorter-<version>.zip for the store
 ```
+
+Pushing a `v<version>` tag runs the same checks in CI and attaches that zip to
+a GitHub release. The tag has to match the manifest's version; if it does not,
+the release fails before anything is built.
 
 Adding a platform means writing one adapter and two three-line entry points —
 see [the guide](docs/ARCHITECTURE.md#adding-a-platform).
@@ -164,20 +176,22 @@ nothing: there is no supporter build, no early access, and no feature behind it.
 
 ## Prior art
 
-Two open-source Instagram sorters exist and are worth knowing about:
+Two Instagram sorters with public source exist and are worth knowing about:
 [insta-sorter](https://github.com/codeXsahil/insta-sorter) and
 [free-sort-feed-extension](https://github.com/RostyslavDzhohola/free-sort-feed-extension).
+Neither carries an open-source licence.
 
 Both read the rendered page. That caps what they can do: Instagram only draws a
 play count on Reels tiles, so a Posts grid cannot be sorted by likes that way —
 the numbers simply are not on screen. Reading the feed response instead is what
 makes Posts, TikTok, and export with full metrics possible.
 
-They also define an outlier against **follower count**. Reach on both platforms
-is driven by recommendation rather than followers now, so a small account with
-one recommended video looks like a permanent outlier. This project compares a
-post against the account's own recent median instead, which is the question
-people usually mean: did this beat what this account normally does?
+free-sort-feed-extension defines an outlier against **follower count** (views
+at least five times followers); insta-sorter has no outlier score. Reach on both
+platforms is driven by recommendation rather than followers now, so a small
+account with one recommended video looks like a permanent outlier. This project
+compares a post against the account's own recent median instead, which is the
+question people usually mean: did this beat what this account normally does?
 
 ## Licence
 

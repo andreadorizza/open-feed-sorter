@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  # For a tag push that didn't trigger a run (more than three tags pushed at
+  # once, say). Pick the tag under "Use workflow from"; run from a branch, the
+  # tag check below stops it.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # Before anything slow: a tag that disagrees with the manifest would
+      # attach a zip Chrome reports as a different version from the release.
+      - name: Check tag matches manifest
+        run: |
+          version=$(node -p "require('./src/manifest.json').version")
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::$GITHUB_REF_NAME does not match manifest version $version — expected v$version"
+            exit 1
+          fi
+
+      - run: npm ci
+
+      # The same test → build → verify every pull request goes through.
+      - name: Test, build, verify
+        run: npm run ci
+
+      # Writes release/open-feed-sorter-<version>.zip, the file to upload to
+      # the Chrome Web Store by hand. See scripts/package.mjs.
+      - name: Package
+        run: npm run package
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "release/open-feed-sorter-${GITHUB_REF_NAME#v}.zip" \
+            --verify-tag \
+            --generate-notes
