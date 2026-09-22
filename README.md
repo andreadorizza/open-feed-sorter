@@ -52,8 +52,8 @@ one. Everything else runs entirely in the tab.
 
 ## Install
 
-A Chrome Web Store listing is on its way. Until it is up, build it and load it
-unpacked:
+Version 0.1.0 is in review for the Chrome Web Store. Until it is listed, build
+it and load it unpacked:
 
 ```bash
 git clone https://github.com/andreadorizza/open-feed-sorter

@@ -10,6 +10,10 @@ measured on those blocks (Unicode code points, final newline excluded).
 `{{CWS_URL}}` stands for the listing URL, which exists only once the item is
 published.
 
+**Status:** 0.1.0 submitted for review on 22 September 2026, with these
+fields. Change this file first when the listing changes, so it stays the
+record of what the store shows.
+
 Contents:
 
 1. [Store listing tab](#1-store-listing-tab)
@@ -359,38 +363,22 @@ its own, which could read as a fault to a reviewer who has not been told, and
 because Yellow Magnesium ("functionality not working as described") is the
 likely rejection if a reviewer cannot get a run to start [S9].
 
-The username and password fields: a throwaway Instagram account made only for
-review. Create it yourself, follow nothing and post nothing, and type its
-username and password straight into the dashboard. Never put them in this
-repository, and never use a personal account.
+The username and password fields: leave empty. A new Instagram account signing
+in from a reviewer's location would usually be stopped by Instagram's
+suspicious-login check, which sends a code only the owner receives, so a test
+account would not help. TikTok works without signing in, and the instructions
+say so.
 
-Additional instructions (2,042 characters):
+Additional instructions (491/500 characters; the dashboard caps this field at 500):
 
 ```text
-No account with the extension is needed and nothing is locked. For Instagram, sign in with the test account in the username and password fields above: logged out, Instagram interrupts with a login prompt after the first few posts, which can stop a run. TikTok profiles normally load without signing in.
-
-INSTAGRAM
-1. Open a public profile's Reels tab, for example https://www.instagram.com/nasa/reels/
-2. Click the extension icon. The popup should read "Instagram · Reels · @nasa".
-3. Choose Sort by: Most views, and How many posts: Latest 25. Press "Sort this profile".
-4. Expected: the tab reloads (on purpose: the site sends a profile's first page only when the page loads), a banner appears, and the page scrolls itself while the count rises, pausing between pages. When it finishes, the grid is replaced by a sorted one, with counts and an outlier score such as "2.1x" on each tile, and a toolbar above it.
-5. In the toolbar: change "Sort by" (the order changes at once, with no new collection); choose Export > CSV, Excel (.xlsx) or JSON (a file is generated in the tab and downloaded); press "Show original feed" (the site's own grid comes back).
-6. Stop: start a run with How many posts: Everything, then press Stop in the banner. The run ends at once and keeps what it had collected.
-7. The Posts tab (https://www.instagram.com/nasa/) works the same way. Photos have no view count there, so outlier scores use likes.
-
-TIKTOK
-8. Open a public profile, for example https://www.tiktok.com/@nasa, and repeat steps 2 to 6. Shares and saves are also available as sorts.
-
-NOTES
-- The extension makes no network requests of its own. During a run, the requests in DevTools > Network are the site's own feed requests, caused by scrolling.
-- The strings "http://schemas.openxmlformats.org/..." and "http://www.w3.org/2000/svg" in the code are XML namespace names used by the .xlsx writer and for SVG. They are never fetched.
-- Source: https://github.com/andreadorizza/open-feed-sorter. The submitted zip is built with: npm ci && npm run package
+No extension account needed. Quickest check: open https://www.tiktok.com/@nasa (works logged out), click the extension icon, pick Most views and Latest 25, press Sort this profile. The tab reloads on purpose, then scrolls itself while it collects. A sorted grid with an outlier score (e.g. 2.1x) on each tile and a toolbar appear. Try re-sort, Export (CSV/Excel/JSON), Stop and Show original feed. Instagram profiles (Posts or Reels tab) work the same but need a signed-in Instagram account.
 ```
 
-Before pasting, run steps 1–8 yourself on the exact zip being uploaded, as
-the policy asks ("Test the exact files that you submit") [S9]. The login-wall
+Before pasting, run it yourself on the exact zip being uploaded, as the policy
+asks ("Test the exact files that you submit") [S9]. The Instagram login-wall
 statement comes from third-party write-ups, not from Instagram [S25]; if
-Instagram behaves differently on the day, adjust the first paragraph.
+Instagram behaves differently on the day, adjust the last sentence.
 
 ---
 
@@ -641,7 +629,7 @@ Made on 22 September 2026:
 - **Name**: B, `Open Feed Sorter for Instagram and TikTok`.
 - **Summary**: the recommended one, with "Reels" and "CSV".
 - **Data usage**: tick "Website content" only, plus the three certifications.
-- **Reviewer login**: a throwaway Instagram account, made by the maintainer.
+- **Reviewer login**: none; the credential fields stay empty (see §4).
 - **Instagram's own sort**: the README now says the app offers a "most viewed"
   order on the Reels tab, and what this adds.
 

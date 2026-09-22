@@ -48,8 +48,8 @@ const install = CHROME_WEB_STORE_URL
       INSTALL_URL: `${REPO_URL}#install`,
       INSTALL_LABEL: "Install from GitHub",
       INSTALL_NOTE:
-        "Not on the Chrome Web Store yet. Until it is, you build it from source and load it " +
-        "unpacked: four commands, then three clicks in chrome://extensions.",
+        "In review for the Chrome Web Store. Until it is listed, you build it from source and " +
+        "load it unpacked: four commands, then three clicks in chrome://extensions.",
     };
 
 const manifest = JSON.parse(readFileSync(join(ROOT, "src", "manifest.json"), "utf8"));
