@@ -103,7 +103,13 @@ site's own state is untouched. It is *parked* — fixed, invisible, far below th
 viewport — not `display:none`. A `display:none` grid measures as zero height,
 so the site's infinite scroll decides the user is always at the end of it and
 pages through the whole profile in the background. Parked, it keeps its real
-size and the end of the feed always looks far away. If parking would lengthen
+size and the end of the feed always looks far away.
+
+What gets parked is the grid *and every plain `div` wrapper that holds nothing
+else*, with our grid placed after the outermost one. Instagram decides when to
+load more by measuring a wrapper three levels above its rows. Parking only the
+rows left our grid inside that wrapper, so scrolling to the bottom of the sorted
+grid loaded another page into the hidden one. If parking would lengthen
 the page (a transformed ancestor makes `position: fixed` behave like
 `absolute`), it falls back to `display:none`.
 
@@ -217,7 +223,7 @@ please say so in an issue.
 ## Testing
 
 ```bash
-npm test          # 111 tests, no browser
+npm test          # 112 tests, no browser
 ```
 
 `core/` and `adapters/` are pure and tested directly. The collector, grid and

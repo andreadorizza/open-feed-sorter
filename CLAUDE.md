@@ -6,7 +6,7 @@
 npm install
 npm run build     # → dist/   (load unpacked in chrome://extensions)
 npm run watch     # rebuild on change
-npm test          # 111 tests, no browser
+npm test          # 112 tests, no browser
 npm run ci        # test → build → verify: what CI runs
 ```
 
