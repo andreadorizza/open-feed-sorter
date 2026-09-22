@@ -27,9 +27,10 @@ own rendering, and re-lays the grid out best-first.
 
 - **Sort a profile** by views, likes, comments, shares, saves, date — or outlier
   score.
-- **Outlier scores.** `3.4x` means a post did 3.4 times this account's recent
-  median. Pinned posts and anything under three days old are excluded from that
-  median, because both would skew it.
+- **Outlier scores on every tile.** `3.4x` means a post did 3.4 times this
+  account's recent median. Pinned posts and anything under three days old are
+  excluded from that median, because both would skew it. A short run reads a few
+  extra older posts so it has enough to compute the median.
 - **Any amount.** 25 posts or the whole feed; a date range or a count. Nothing
   is reserved for a paid tier, because nothing about "latest 500" costs more to
   compute than "latest 25".
@@ -126,7 +127,7 @@ src/
 ```bash
 npm run build    # → dist/
 npm run watch    # rebuild on change
-npm test         # 95 tests, no browser needed
+npm test         # 111 tests, no browser needed
 npm run ci       # test + build + verify the built extension (what CI runs)
 ```
 

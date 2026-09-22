@@ -5,24 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Open Feed Sorter</title>
     <style>
-      :root { color-scheme: light dark; --fg: #111827; --bg: #fff; --muted: #6b7280; --line: rgba(0,0,0,.12); }
-      @media (prefers-color-scheme: dark) { :root { --fg: #f9fafb; --bg: #0f172a; --muted: #9ca3af; --line: rgba(255,255,255,.14); } }
+      @font-face { font-family: "SFF Matrix Sans Screen"; src: url("fonts/MatrixSansScreen-Regular.woff2") format("woff2"); font-display: block; }
+      :root { color-scheme: light; --lcd: #c7e3ab; --ink: #13200f; --dim: #4d6440; --ghost: rgba(19,32,15,.07); }
+      @media (prefers-color-scheme: dark) { :root { color-scheme: dark; --lcd: #0e170b; --ink: #b9e18f; --dim: #71905a; --ghost: rgba(185,225,143,.06); } }
       * { box-sizing: border-box; }
-      body { margin: 0; padding: 48px 20px; background: var(--bg); color: var(--fg);
-             font: 400 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
-      main { max-width: 640px; margin: 0 auto; }
-      h1 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 6px; }
-      .sub { color: var(--muted); margin: 0 0 36px; }
-      ol { padding-left: 20px; }
-      li { margin-bottom: 14px; }
-      h2 { font-size: 16px; margin: 36px 0 10px; }
-      code { background: color-mix(in srgb, currentColor 10%, transparent);
-             padding: 1px 5px; border-radius: 4px; font-size: 14px; }
-      .card { border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-top: 28px; }
+      body { margin: 0; padding: 50px 20px; background-color: var(--lcd); color: var(--ink);
+             background-image: radial-gradient(var(--ghost) .75px, transparent 1px); background-size: 3px 3px;
+             font: 400 20px/1.4 "SFF Matrix Sans Screen", ui-monospace, Menlo, monospace; -webkit-font-smoothing: antialiased; }
+      main { max-width: 720px; margin: 0 auto; }
+      h1 { font-size: 30px; font-weight: 400; text-transform: uppercase; margin: 0 0 10px; }
+      .sub { color: var(--dim); margin: 0 0 40px; }
+      ol { padding-left: 30px; }
+      li { margin-bottom: 15px; }
+      h2 { font-size: 20px; font-weight: 400; text-transform: uppercase; margin: 40px 0 10px;
+           padding-bottom: 5px; border-bottom: 2px dotted var(--dim); }
+      strong { font-weight: 400; background: var(--ink); color: var(--lcd); padding: 0 5px; }
+      code { font: inherit; border: 2px solid var(--ink); padding: 0 5px; }
+      .card { border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--dim); padding: 15px 20px; margin-top: 30px; }
       .card p:last-child { margin-bottom: 0; }
-      footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
-               color: var(--muted); font-size: 14px; }
-      a { color: #6366f1; }
+      footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid var(--ink); color: var(--dim); }
+      a { color: var(--ink); }
     </style>
   </head>
   <body>

@@ -15,11 +15,19 @@
 import { claimRun } from "../core/session.js";
 import { post, listen, PageMsg, ContentMsg, TO_PAGE, TO_CONTENT } from "../core/protocol.js";
 import { sortItems } from "../core/sort.js";
-import { computeBaseline, stampScores } from "../core/outlier.js";
+import { computeBaseline, stampScores, OUTLIER_DEFAULTS } from "../core/outlier.js";
 import { resolveRange } from "../core/dates.js";
 import { StopSignal } from "./runtime/abort.js";
 import { installNetworkHooks } from "./runtime/net-hooks.js";
 import { Collector } from "./runtime/collector.js";
+
+/**
+ * How far past the finish line a run may read to fill the outlier baseline.
+ * About four pages: enough to score a "Latest 25" run or a short date range,
+ * small enough that an account with few eligible posts doesn't turn a quick
+ * run into a long one.
+ */
+const BASELINE_MAX_EXTRA = 48;
 
 /** Metric an outlier score is measured in, per surface. */
 function outlierMetric(adapter, surface) {
@@ -48,6 +56,12 @@ export function startPageRuntime(adapter) {
     config,
     signal,
     onProgress: (progress) => post(TO_CONTENT, PageMsg.PROGRESS, progress),
+    // Always, not only for an outlier sort: every tile shows its score.
+    baseline: {
+      metric: outlierMetric(adapter, config.surface),
+      need: OUTLIER_DEFAULTS.cap,
+      maxExtra: BASELINE_MAX_EXTRA,
+    },
   });
 
   const uninstall = installNetworkHooks(
@@ -76,16 +90,14 @@ function finishRun(adapter, config, result) {
   }
 
   const metric = outlierMetric(adapter, config.surface);
-  let outlier = null;
 
   // Score whenever we can, not only when the user asked for an outlier sort:
-  // the pool is already in memory, so the badges and the extra sort option are
-  // free. A stopped run is the exception — its pool is truncated at an
-  // arbitrary point, and a truncated pool skews the median.
-  if (reason !== "stopped") {
-    outlier = computeBaseline(pool, { metric });
-    if (outlier.status === "ok") stampScores(items, outlier);
-  }
+  // the pool is already in memory, so the scores and the extra sort option are
+  // free. A stopped run is scored too — its pool is the newest part of the
+  // feed, which is exactly what the baseline reads, and computeBaseline
+  // declines when there is too little of it.
+  const outlier = computeBaseline(pool, { metric });
+  if (outlier.status === "ok") stampScores(items, outlier);
 
   const sorted = sortItems(items, config.sortBy, { outlierFallback: metric });
 

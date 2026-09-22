@@ -16,6 +16,8 @@
  *     views and would drag the baseline down.
  */
 
+import { compactNumber } from "./format.js";
+
 export const OUTLIER_DEFAULTS = {
   /** below this, a post is still gathering views and is not representative */
   minAgeMs: 72 * 60 * 60 * 1000,
@@ -67,15 +69,18 @@ export function median(values) {
  *
  * @returns {{status:"ok"|"insufficient", baseline:number|null, metric:string, poolSize:number}}
  */
+/** Whether an item can count toward the baseline for `metric`. */
+export function qualifies(item, { metric, now = Date.now(), minAgeMs = OUTLIER_DEFAULTS.minAgeMs } = {}) {
+  if (!item || item.isPinned) return false;
+  if (!Number.isFinite(item.createdAtMs)) return false;
+  if (now - item.createdAtMs < minAgeMs) return false;
+  return toNumber(item[metric]) !== null;
+}
+
 export function computeBaseline(pool, { metric, now = Date.now(), ...opts } = {}) {
   const { minAgeMs, floor, cap } = { ...OUTLIER_DEFAULTS, ...opts };
 
-  const qualifying = (pool || []).filter((item) => {
-    if (!item || item.isPinned) return false;
-    if (!Number.isFinite(item.createdAtMs)) return false;
-    if (now - item.createdAtMs < minAgeMs) return false;
-    return toNumber(item[metric]) !== null;
-  });
+  const qualifying = (pool || []).filter((item) => qualifies(item, { metric, now, minAgeMs }));
 
   if (qualifying.length < floor) return unscorable(metric, qualifying.length);
 
@@ -113,4 +118,28 @@ export function formatScore(score) {
   if (typeof score !== "number" || !Number.isFinite(score)) return "";
   if (score >= 10) return `${Math.round(score)}x`;
   return `${score.toFixed(1)}x`;
+}
+
+/**
+ * One sentence saying what the scores mean for this run — or why there are
+ * none. Shown under the toolbar, so a missing score is never a mystery.
+ *
+ * @param {{status:string, baseline:number|null, metric:string, poolSize:number}|null} meta
+ */
+export function explainBaseline(meta, { floor = OUTLIER_DEFAULTS.floor } = {}) {
+  if (!meta) return "";
+  const metric = meta.metric || "views";
+
+  if (usableBaseline(meta)) {
+    return (
+      `Outlier score = ${metric} ÷ ${compactNumber(meta.baseline)}, the median of this account's ` +
+      `${meta.poolSize} most recent posts older than 3 days (pinned posts left out).`
+    );
+  }
+
+  const found = meta.poolSize ?? 0;
+  return (
+    `No outlier scores: found ${found} post${found === 1 ? "" : "s"} older than 3 days with ` +
+    `${metric}, and scoring needs ${floor}.`
+  );
 }

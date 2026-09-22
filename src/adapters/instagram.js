@@ -56,6 +56,8 @@ const MEDIA_TYPE_CAROUSEL = 8;
 export const instagramAdapter = {
   id: "instagram",
   label: "Instagram",
+  homeUrl: "https://www.instagram.com/",
+  profileExample: "instagram.com/username — the Posts or Reels tab",
   surfaces: SURFACES,
   metrics: ["views", "likes", "comments"],
 

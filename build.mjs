@@ -31,6 +31,8 @@ const STATIC = [
   ["src/content/styles.css", "content/styles.css"],
   ["src/welcome.html", "welcome.html"],
   ["src/icons", "icons"],
+  // The popup and welcome page link the font; the license travels with it.
+  ["src/fonts", "fonts"],
 ];
 
 async function copyStatic() {
@@ -60,6 +62,8 @@ async function build() {
       format: formatFor(name),
       target: "chrome111", // the floor for content_scripts `world: "MAIN"`
       legalComments: "none",
+      // The content scripts carry the font as bytes — see content/runtime/font.js.
+      loader: { ".woff2": "binary" },
       // Readable output is a feature for an extension people are asked to
       // review before installing an unpacked build.
       minify: false,

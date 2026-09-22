@@ -14,32 +14,34 @@
     <main class="body" id="form" hidden>
       <label class="field">
         <span class="field__label">Sort by</span>
-        <select id="sortBy"></select>
+        <span class="select"><select id="sortBy"></select></span>
       </label>
 
       <fieldset class="field">
         <legend class="field__label">How much to collect</legend>
         <div class="segmented">
-          <label><input type="radio" name="mode" value="count" checked /><span>Latest N</span></label>
+          <label><input type="radio" name="mode" value="count" checked /><span>Latest posts</span></label>
           <label><input type="radio" name="mode" value="range" /><span>Date range</span></label>
         </div>
       </fieldset>
 
       <label class="field" id="countField">
         <span class="field__label">How many posts</span>
-        <select id="count">
-          <option value="25">Latest 25</option>
-          <option value="50">Latest 50</option>
-          <option value="100" selected>Latest 100</option>
-          <option value="250">Latest 250</option>
-          <option value="500">Latest 500</option>
-          <option value="100000">Everything</option>
-        </select>
+        <span class="select">
+          <select id="count">
+            <option value="25" selected>Latest 25</option>
+            <option value="50">Latest 50</option>
+            <option value="100">Latest 100</option>
+            <option value="250">Latest 250</option>
+            <option value="500">Latest 500</option>
+            <option value="100000">Everything</option>
+          </select>
+        </span>
       </label>
 
       <label class="field" id="rangeField" hidden>
         <span class="field__label">Posted within</span>
-        <select id="range"></select>
+        <span class="select"><select id="range"></select></span>
       </label>
 
       <p class="note" id="note"></p>
@@ -48,15 +50,28 @@
       <p class="hint">Reloads the tab, then scrolls the feed to collect posts. You can stop at any time.</p>
     </main>
 
-    <main class="body" id="unsupported" hidden>
-      <p class="empty">
-        Open an <strong>Instagram</strong> or <strong>TikTok</strong> profile, then click the
-        extension again.
-      </p>
+    <!-- Any site other than the two we support. -->
+    <main class="body" id="elsewhere" hidden>
+      <p class="lead">Works on Instagram and TikTok profiles.</p>
+      <div class="go" id="go"></div>
+      <p class="hint">Then open a profile — yours or anyone's — and click the icon again.</p>
+    </main>
+
+    <!-- On a supported site, but not on a profile. -->
+    <main class="body" id="notProfile" hidden>
+      <p class="lead">Open a profile to sort it.</p>
+      <p class="example" id="example"></p>
+      <p class="hint">Then click the icon again.</p>
+    </main>
+
+    <!-- On a supported site whose tab predates the extension. -->
+    <main class="body" id="stale" hidden>
+      <p class="lead">This tab was open before the extension loaded.</p>
+      <button type="button" class="primary" id="reload">Reload tab</button>
     </main>
 
     <footer class="foot">
-      <span>No account, no tracking, no servers.</span>
+      <span>No account. No tracking. No servers.</span>
       <a href="https://github.com/andreadorizza/open-feed-sorter" target="_blank" rel="noopener">Source</a>
     </footer>
 
