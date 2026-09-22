@@ -1,4 +1,4 @@
-# Sort Feed Better
+# Open Feed Sorter
 
 Sort any Instagram or TikTok profile by views, likes, comments or **outlier
 score** — then export the results. No account, no backend, no paywall.

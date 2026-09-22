@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Sort Feed Better",
-  "short_name": "Sort Feed Better",
+  "name": "Open Feed Sorter",
+  "short_name": "Feed Sorter",
   "version": "0.1.0",
-  "description": "Sort any Instagram or TikTok profile by views, likes, comments or outlier score — then export the results. Open source, no account.",
+  "description": "Sort any Instagram or TikTok profile by views, likes, comments or outlier score \u2014 then export the results. Open source, no account.",
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -20,30 +20,55 @@
   "background": {
     "service_worker": "background/service-worker.js"
   },
-  "permissions": ["tabs"],
-  "host_permissions": ["https://www.instagram.com/*", "https://www.tiktok.com/*"],
+  "permissions": [
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.instagram.com/*",
+    "https://www.tiktok.com/*"
+  ],
   "content_scripts": [
     {
-      "matches": ["https://www.instagram.com/*"],
-      "js": ["content/instagram.js"],
-      "css": ["content/styles.css"],
+      "matches": [
+        "https://www.instagram.com/*"
+      ],
+      "js": [
+        "content/instagram.js"
+      ],
+      "css": [
+        "content/styles.css"
+      ],
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://www.instagram.com/*"],
-      "js": ["page/instagram.js"],
+      "matches": [
+        "https://www.instagram.com/*"
+      ],
+      "js": [
+        "page/instagram.js"
+      ],
       "world": "MAIN",
       "run_at": "document_start"
     },
     {
-      "matches": ["https://www.tiktok.com/*"],
-      "js": ["content/tiktok.js"],
-      "css": ["content/styles.css"],
+      "matches": [
+        "https://www.tiktok.com/*"
+      ],
+      "js": [
+        "content/tiktok.js"
+      ],
+      "css": [
+        "content/styles.css"
+      ],
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://www.tiktok.com/*"],
-      "js": ["page/tiktok.js"],
+      "matches": [
+        "https://www.tiktok.com/*"
+      ],
+      "js": [
+        "page/tiktok.js"
+      ],
       "world": "MAIN",
       "run_at": "document_start"
     }
