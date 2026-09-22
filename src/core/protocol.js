@@ -8,7 +8,7 @@
  * picks up its own broadcast.
  */
 
-export const NS = "sortfeedforfree";
+export const NS = "openfeedsorter";
 
 export const TO_PAGE = "to-page";
 export const TO_CONTENT = "to-content";

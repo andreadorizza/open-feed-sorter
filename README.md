@@ -1,7 +1,15 @@
-# Sort Feed for Free
+# Open Feed Sorter
 
 Sort any Instagram or TikTok profile by views, likes, comments or **outlier
 score** — then export the results. No account, no backend, no paywall.
+
+[![CI](https://github.com/andreadorizza/open-feed-sorter/actions/workflows/ci.yml/badge.svg)](https://github.com/andreadorizza/open-feed-sorter/actions/workflows/ci.yml)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+[![Manifest V3](https://img.shields.io/badge/manifest-v3-4285F4.svg)](src/manifest.json)
+
+<a href="https://ko-fi.com/andreadorizza">
+  <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="36">
+</a>
 
 Instagram will not tell you how a profile's posts performed. The grid shows no
 numbers; hover a tile and you get likes and comments one post at a time, never
@@ -45,8 +53,8 @@ one. Everything else runs entirely in the tab.
 No store listing yet. Build it and load it unpacked:
 
 ```bash
-git clone https://github.com/andreadorizza/sort-feed-for-free
-cd sort-feed-for-free
+git clone https://github.com/andreadorizza/open-feed-sorter
+cd open-feed-sorter
 npm install
 npm run build
 ```
@@ -147,9 +155,12 @@ answers your question.
 The extension is free and always will be — nothing is reserved for a paid tier,
 because nothing about "latest 500" costs more to compute than "latest 25".
 
-If it saved you time, [a coffee](https://ko-fi.com/andreadorizza) is welcome and
-entirely optional. It buys nothing: there is no supporter build, no early
-access, and no feature behind it.
+If it saved you time, a coffee is welcome and entirely optional. It buys
+nothing: there is no supporter build, no early access, and no feature behind it.
+
+<a href="https://ko-fi.com/andreadorizza">
+  <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="36">
+</a>
 
 ## Prior art
 
