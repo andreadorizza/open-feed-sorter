@@ -1,0 +1,958 @@
+/*
+ * Landing page for Open Feed Sorter.
+ *
+ * The page wears the extension's own face: a monochrome dot-matrix LCD set in
+ * Matrix Sans Screen, reflective in light mode and backlit in dark mode. The
+ * panel colours are the ones in src/popup/popup.css and src/content/styles.css;
+ * change them there first.
+ *
+ * Type sizes are multiples of 5px. Matrix Sans draws on a 0.1em dot grid, so at
+ * those sizes every dot lands on whole device pixels on a 2x screen.
+ */
+
+@font-face {
+  font-family: "Matrix Sans Screen";
+  src: url("fonts/MatrixSansScreen-Regular.woff2") format("woff2");
+  /* 9.5 KB and preloaded. Swapping from a fallback face would reflow the
+     whole page, since no other font has these widths. */
+  font-display: block;
+}
+
+:root {
+  color-scheme: light;
+  --lcd: #c7e3ab;
+  --ink: #13200f;
+  --dim: #4d6440;
+  --ghost: rgba(19, 32, 15, 0.07);
+  --unlit: rgba(19, 32, 15, 0.1);
+  --shadow: rgba(19, 32, 15, 0.3);
+  /* Secondary text on an inverted (ink) panel: 6.5:1. */
+  --ink-dim: #91a87c;
+  --ink-ghost: rgba(199, 227, 171, 0.07);
+  /* Backlight bleed behind the hero; a reflective panel has none. */
+  --glow: transparent;
+
+  --font: "Matrix Sans Screen", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --gutter: 16px;
+  --wide: 1200px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --lcd: #0e170b;
+    --ink: #b9e18f;
+    --dim: #71905a;
+    --ghost: rgba(185, 225, 143, 0.06);
+    --unlit: rgba(185, 225, 143, 0.08);
+    --shadow: rgba(0, 0, 0, 0.6);
+    --ink-dim: #415433;
+    --ink-ghost: rgba(14, 23, 11, 0.08);
+    --glow: rgba(185, 225, 143, 0.07);
+  }
+}
+
+@media (min-width: 700px) {
+  :root { --gutter: 32px; }
+}
+
+/* ── base ────────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+
+html { scroll-padding-top: 20px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  background-color: var(--lcd);
+  /* The unlit-pixel grid of an LCD, faint enough to read as texture. */
+  background-image: radial-gradient(var(--ghost) 0.75px, transparent 1px);
+  background-size: 3px 3px;
+  color: var(--ink);
+  font: 400 20px/1.5 var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-size-adjust: 100%;
+}
+
+::selection { background: var(--ink); color: var(--lcd); }
+
+h1, h2, h3 { font-weight: 400; text-transform: uppercase; }
+
+p { margin: 0 0 20px; }
+
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+a:hover { background: var(--ink); color: var(--lcd); text-decoration: none; }
+
+:focus-visible {
+  outline: 2px dashed var(--ink);
+  outline-offset: 3px;
+}
+
+code {
+  font: inherit;
+  padding: 0 4px;
+  border: 2px solid currentColor;
+  overflow-wrap: anywhere;
+}
+
+pre code { padding: 0; border: 0; }
+
+/* Wrap rather than scroll: a scrolling box is one more thing to reach by
+   keyboard, and these are short enough to read wrapped on a phone. */
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Names of the extension's own buttons and messages, set the way the
+   welcome page sets them: inverse video, never slanted — the font has no
+   italic, and a synthesised one smears the dots. */
+em {
+  padding: 0 5px;
+  background: var(--ink);
+  color: var(--lcd);
+  font-style: normal;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Keeps "3.4x" lowercase inside uppercase headings, as it is on the tiles. */
+.score { text-transform: none; }
+
+.wrap {
+  width: 100%;
+  max-width: calc(var(--wide) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.dots {
+  display: inline-block;
+  flex: none;
+  width: 0.6em;
+  height: 0.7em;
+  fill: currentColor;
+  overflow: visible;
+}
+
+.skip {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  padding: 5px 10px;
+  background: var(--ink);
+  color: var(--lcd);
+  transform: translateY(-200%);
+}
+.skip:focus { transform: none; }
+
+/* ── masthead ────────────────────────────────────────────────────────── */
+
+.masthead { border-bottom: 2px solid var(--ink); }
+
+.masthead__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 70px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The toolbar icon: four descending bars — a feed, sorted — in a frame. */
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid currentColor;
+}
+.brand__mark svg { width: 17.5px; height: 17.5px; fill: currentColor; }
+
+.nav ul {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.nav a {
+  display: block;
+  padding: 5px 10px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav__section { display: none; }
+
+.nav__out {
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+
+@media (min-width: 960px) {
+  .nav__section { display: block; }
+}
+
+/* ── hero ────────────────────────────────────────────────────────────── */
+
+.hero {
+  padding-block: 30px 10px;
+  background-image: radial-gradient(ellipse 70% 60% at 65% 30%, var(--glow), transparent 70%);
+}
+
+.hero__status {
+  margin: 0 0 20px;
+  color: var(--dim);
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0 0 30px;
+  font-size: 40px;
+  line-height: 1.25;
+  max-width: 19em;
+}
+
+.hero h1 mark {
+  padding: 0 0.1em;
+  background: var(--ink);
+  color: var(--lcd);
+}
+
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 50px;
+}
+
+.hero__lead { max-width: 30em; }
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px 30px;
+  margin: 35px 0 20px;
+}
+
+.hero__note {
+  max-width: 30em;
+  margin: 0;
+  color: var(--dim);
+  font-size: 15px;
+}
+
+@media (min-width: 700px) {
+  .hero { padding-top: 45px; }
+  .hero h1 { margin-bottom: 40px; font-size: 50px; line-height: 1.2; }
+}
+
+@media (min-width: 1000px) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
+  }
+}
+
+@media (min-width: 1200px) {
+  .hero h1 { font-size: 60px; }
+}
+
+/* ── buttons ─────────────────────────────────────────────────────────── */
+
+.button {
+  display: inline-block;
+  padding: 15px 20px 13px;
+  border: 2px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  box-shadow: 4px 4px 0 var(--shadow);
+  font: inherit;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.button:hover { background: var(--ink); color: var(--lcd); }
+.button:active { transform: translate(4px, 4px); box-shadow: none; }
+
+.button--primary { background: var(--ink); color: var(--lcd); }
+.button--primary:hover { background: var(--dim); border-color: var(--dim); }
+
+/* ── screenshot ──────────────────────────────────────────────────────── */
+
+.shot { margin: 0; }
+
+.shot__frame {
+  border: 2px solid var(--ink);
+  background: var(--ghost);
+  box-shadow: 8px 8px 0 var(--shadow);
+  aspect-ratio: 1280 / 800;
+}
+
+.shot picture,
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.shot figcaption {
+  margin-top: 20px;
+  color: var(--dim);
+  font-size: 15px;
+}
+
+/* ── sections ────────────────────────────────────────────────────────── */
+
+.section { padding-block: 70px; }
+
+@media (min-width: 700px) {
+  .section { padding-block: 100px; }
+}
+
+.section__head {
+  margin: 0 0 40px;
+  padding-bottom: 10px;
+  border-bottom: 2px dotted var(--dim);
+}
+
+.section__head h2 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.section__intro {
+  max-width: 36em;
+  margin-bottom: 50px;
+}
+
+.section h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+/* ── how it works ────────────────────────────────────────────────────── */
+
+.steps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 60px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  gap: 25px;
+  align-content: start;
+}
+
+.step__num {
+  display: inline-grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  margin-bottom: 20px;
+  background: var(--ink);
+  color: var(--lcd);
+  font-size: 30px;
+}
+
+.step p:last-child { margin-bottom: 0; }
+
+@media (min-width: 700px) {
+  .step { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; }
+}
+
+/* Three across: the replicas share one row, bottom-aligned, so the three
+   step numbers and headings line up whatever height each replica is. */
+@media (min-width: 1080px) {
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    gap: 40px;
+  }
+  .step {
+    grid-row: span 2;
+    grid-template-columns: none;
+    grid-template-rows: subgrid;
+    gap: 40px;
+  }
+  .step__demo { order: -1; }
+}
+
+/*
+ * Replicas of the extension's own popup and banner. They are drawn in HTML
+ * rather than screenshots so they follow the light/dark theme like the real
+ * thing does. Their text is the extension's real text; keep it that way.
+ */
+.demo {
+  align-self: start;
+  max-width: 360px;
+  border: 2px solid var(--ink);
+  background-color: var(--lcd);
+  background-image: radial-gradient(var(--ghost) 0.75px, transparent 1px);
+  background-size: 3px 3px;
+  box-shadow: 4px 4px 0 var(--shadow);
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+@media (min-width: 1080px) {
+  .step__demo { align-self: end; }
+}
+
+.demo__row {
+  display: flex;
+  align-items: baseline;
+  padding: 12px 15px 10px;
+}
+.demo__row + .demo__row { border-top: 2px dotted var(--dim); }
+
+.demo__dim { color: var(--dim); }
+.demo__caps { text-transform: uppercase; }
+
+.demo__head {
+  padding: 12px 15px 10px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.demo__body {
+  display: grid;
+  gap: 6px;
+  padding: 12px 15px 15px;
+}
+
+.demo__label { color: var(--dim); text-transform: uppercase; }
+.demo__label ~ .demo__label { margin-top: 8px; }
+
+.demo__select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px 5px;
+  border: 2px solid var(--ink);
+}
+
+.demo__go {
+  margin-top: 12px;
+  padding: 9px 10px 8px;
+  background: var(--ink);
+  color: var(--lcd);
+  box-shadow: 3px 3px 0 var(--shadow);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.demo--banner {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 15px;
+}
+
+.demo__grow { flex: 1; min-width: 0; }
+
+.demo__track {
+  height: 14px;
+  margin-top: 10px;
+  padding: 2px;
+  border: 2px solid var(--ink);
+}
+
+/* A segmented bar, lit one block at a time like the banner's meter. */
+.demo__fill {
+  width: 45%;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 6px, transparent 6px 8px);
+}
+
+.demo__stop {
+  flex: none;
+  padding: 6px 12px 5px;
+  background: var(--ink);
+  color: var(--lcd);
+  text-transform: uppercase;
+}
+
+/* ── outlier chart ───────────────────────────────────────────────────── */
+
+.chart {
+  margin: 0 0 60px;
+  padding: 20px 15px 15px;
+  border: 2px solid var(--ink);
+  background: var(--lcd);
+  box-shadow: 8px 8px 0 var(--shadow);
+  view-timeline: --chart block;
+}
+
+@media (min-width: 700px) {
+  .chart { padding: 30px 30px 25px; }
+}
+
+.chart__plot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 10px;
+  margin-top: 35px;
+}
+
+/* On a phone the median's axis label would take a fifth of the width; the
+   legend says the same thing, so the plot gets the room instead. */
+.chart__axis { display: none; }
+
+@media (min-width: 700px) {
+  .chart__plot { grid-template-columns: auto minmax(0, 1fr); }
+  .chart__axis { display: block; }
+}
+
+.chart__axis {
+  position: relative;
+  width: 4em;
+  color: var(--dim);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+/* Sits level with the median line: 24 of the plot's 32 rows down. */
+.chart__axis span {
+  position: absolute;
+  top: 75%;
+  right: 0;
+  transform: translateY(-50%);
+  text-align: right;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chart__canvas { position: relative; }
+
+.chart__canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Tags are placed in the SVG's own units: left = (x + 1) / 88, top = y / 32. */
+.chart__tag {
+  position: absolute;
+  padding: 2px 5px 1px;
+  font-size: 15px;
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 5px));
+}
+
+.chart__tag--hot { background: var(--ink); color: var(--lcd); }
+.chart__tag--off { color: var(--dim); text-transform: uppercase; }
+.chart__tag--pin { left: 15.91%; top: 31.25%; }
+.chart__tag--hot { left: 50%; top: 15.625%; }
+.chart__tag--new { right: 0; top: 0; transform: translateY(-100%); padding-right: 0; }
+
+.chart__time {
+  display: flex;
+  justify-content: space-between;
+  grid-column: -2;
+  margin-top: 10px;
+  color: var(--dim);
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.px--unlit { fill: var(--unlit); }
+.px--lit { fill: var(--ink); }
+.px--off { fill: none; stroke: var(--dim); stroke-width: 0.14; }
+
+/* A gap cut through the bars, then a dashed line in it: readable over lit
+   and unlit pixels alike. */
+.chart__rule-gap { stroke: var(--lcd); stroke-width: 0.5; }
+.chart__rule { stroke: var(--ink); stroke-width: 0.22; stroke-dasharray: 0.6 0.4; }
+.chart__cutoff { stroke: var(--dim); stroke-width: 0.22; stroke-dasharray: 0.6 0.4; }
+
+.chart figcaption {
+  color: var(--dim);
+  font-size: 15px;
+}
+
+.legend {
+  display: grid;
+  gap: 10px 30px;
+  margin: 25px 0 0;
+  padding: 20px 0 0;
+  border-top: 2px dotted var(--dim);
+  list-style: none;
+  font-size: 15px;
+}
+
+.legend li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.legend__key {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  align-self: center;
+}
+.legend__key--rule { width: 24px; height: 18px; }
+
+.legend__chip {
+  flex: none;
+  padding: 1px 5px 0;
+  background: var(--ink);
+  color: var(--lcd);
+}
+
+@media (min-width: 1000px) {
+  .legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    /* The counted bars light up row by row as the chart scrolls in, the way
+       the banner's meter fills. Scrolling back reverses it. */
+    .chart__lit {
+      animation: chart-fill steps(27, end) both;
+      animation-timeline: --chart;
+      animation-range: entry 10% entry 90%;
+    }
+  }
+}
+
+@keyframes chart-fill {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+.rules {
+  display: grid;
+  gap: 25px 50px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rules li {
+  position: relative;
+  padding-left: 25px;
+}
+
+/* A single lit 2×2 block for a bullet. */
+.rules li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  background: var(--ink);
+}
+
+@media (min-width: 900px) {
+  .rules { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ── spec sheet ──────────────────────────────────────────────────────── */
+
+.spec { margin: 0; }
+
+.spec__row {
+  display: grid;
+  /* minmax(0, …) everywhere a grid holds a <pre>: a grid item's default
+     min-width is its longest unbreakable line, which would widen the page. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px 40px;
+  padding: 20px 0 22px;
+  border-bottom: 2px dotted var(--dim);
+}
+
+.spec dt {
+  color: var(--dim);
+  text-transform: uppercase;
+}
+
+.spec dd {
+  max-width: 38em;
+  margin: 0;
+}
+
+.spec dd p:last-child { margin-bottom: 0; }
+
+@media (min-width: 800px) {
+  .spec__row { grid-template-columns: 250px minmax(0, 1fr); }
+}
+
+.keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 15px;
+}
+
+.keys li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 10px 3px;
+  border: 2px solid var(--ink);
+}
+
+.sample {
+  margin: 15px 0 0;
+  padding: 10px 12px 8px;
+  border: 2px solid var(--ink);
+  font: inherit;
+  font-size: 15px;
+}
+
+/* ── privacy (inverse video) ─────────────────────────────────────────── */
+
+.band {
+  background-color: var(--ink);
+  background-image: radial-gradient(var(--ink-ghost) 0.75px, transparent 1px);
+  background-size: 3px 3px;
+  color: var(--lcd);
+}
+
+.band ::selection { background: var(--lcd); color: var(--ink); }
+.band a:hover { background: var(--lcd); color: var(--ink); }
+.band :focus-visible { outline-color: var(--lcd); }
+.band .section__head { border-bottom-color: var(--ink-dim); }
+.band em { background: var(--lcd); color: var(--ink); }
+
+.band__claim {
+  max-width: 22em;
+  margin: 0 0 30px;
+  font-size: 30px;
+  line-height: 1.3;
+}
+
+.band__body { max-width: 36em; }
+
+.proofs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+  margin-top: 50px;
+}
+
+@media (min-width: 1000px) {
+  .proofs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.proof h3 { color: var(--ink-dim); }
+
+.proof pre {
+  margin: 0 0 20px;
+  padding: 15px 15px 13px;
+  border: 2px solid var(--lcd);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.proof p:last-child { margin-bottom: 0; }
+
+.band__more { margin: 50px 0 0; }
+
+/* ── free ────────────────────────────────────────────────────────────── */
+
+.free__body { max-width: 36em; }
+
+.compare { margin-top: 70px; }
+
+.compare__note {
+  max-width: 44em;
+  color: var(--dim);
+  font-size: 15px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border: 2px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--shadow);
+  background: var(--lcd);
+}
+
+.table-scroll:focus-visible { outline-offset: 6px; }
+
+.table-hint {
+  margin: 20px 0 0;
+  color: var(--dim);
+  font-size: 15px;
+}
+
+/* From 768px the table's 700px minimum fits, so there is nothing to scroll. */
+@media (min-width: 768px) {
+  .table-hint { display: none; }
+}
+
+table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+th, td {
+  padding: 12px 15px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+thead th {
+  background: var(--ink);
+  color: var(--lcd);
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+thead td { width: 21%; }
+
+tbody th {
+  color: var(--dim);
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+tbody tr + tr > * { border-top: 2px dotted var(--dim); }
+td + td, th + td { border-left: 2px solid var(--ink); }
+thead th + th { border-left: 2px solid var(--lcd); }
+
+/* ── questions ───────────────────────────────────────────────────────── */
+
+.faq details { border-bottom: 2px dotted var(--dim); }
+
+.faq summary {
+  display: flex;
+  align-items: baseline;
+  gap: 15px;
+  padding: 20px 0 18px;
+  cursor: pointer;
+  list-style: none;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary:hover { color: var(--dim); }
+
+.faq summary .dots { transform: rotate(-90deg); }
+.faq details[open] summary .dots { transform: none; }
+
+.faq__answer {
+  max-width: 38em;
+  padding: 0 0 25px 27px;
+}
+
+.faq__answer p:last-child { margin-bottom: 0; }
+
+/* ── closing ─────────────────────────────────────────────────────────── */
+
+.closing {
+  padding-block: 20px 100px;
+}
+
+.closing__panel {
+  display: grid;
+  gap: 30px;
+  padding: 30px 20px;
+  border: 2px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--shadow);
+}
+
+.closing__panel h2 {
+  margin: 0 0 15px;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.closing__panel p { max-width: 34em; }
+.closing__panel p:last-child { margin-bottom: 0; }
+
+@media (min-width: 900px) {
+  .closing__panel {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 40px;
+  }
+}
+
+.closing__actions {
+  display: grid;
+  gap: 15px;
+  justify-items: start;
+}
+
+/* ── footer ──────────────────────────────────────────────────────────── */
+
+.footer {
+  padding-block: 30px 40px;
+  border-top: 2px solid var(--ink);
+  font-size: 15px;
+}
+
+.footer__grid {
+  display: grid;
+  gap: 25px;
+}
+
+.footer ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 25px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer p { margin: 0; color: var(--dim); }
+
+@media (min-width: 900px) {
+  .footer__grid {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+  }
+  .footer ul { justify-content: flex-end; }
+  .footer__legal { grid-column: 1 / -1; }
+}

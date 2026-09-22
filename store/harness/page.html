@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Crumbwell Bakery (fictional demo profile)</title>
+    <!-- The fake site. -->
+    <link rel="stylesheet" href="site.css" />
+    <script defer src="build/site.js"></script>
+    <!-- The extension's stylesheet, as the manifest injects it. -->
+    <link rel="stylesheet" href="/src/content/styles.css" />
+    <!-- Fixture time; see clock.js. -->
+    <script src="clock.js"></script>
+    <!-- Page world: the manifest runs it at document_start. -->
+    <script src="build/page-world.js"></script>
+    <!-- Content script: the manifest runs it at document_idle. -->
+    <script>
+      addEventListener("DOMContentLoaded", () => {
+        const script = document.createElement("script");
+        script.src = "build/content.js";
+        document.head.append(script);
+      });
+    </script>
+  </head>
+  <body></body>
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Store screenshot stage</title>
+    <link rel="stylesheet" href="stage.css" />
+  </head>
+  <body>
+    <!--
+      One screenshot. The caption strip is ours; everything under it is the
+      fake profile page (page.html) with the real extension running in it, plus
+      — for some shots — the real popup or a view of a real exported file.
+    -->
+    <header class="caption">
+      <p class="caption__title" id="captionTitle"></p>
+      <p class="caption__brand">Open Feed Sorter</p>
+    </header>
+    <div class="viewport" id="viewport">
+      <iframe id="page" title="Profile page with the extension running"></iframe>
+      <div class="popup" id="popupWrap" hidden>
+        <iframe id="popup" title="The extension's popup"></iframe>
+      </div>
+      <section class="sheet" id="sheet" hidden aria-label="An exported file, opened"></section>
+    </div>
+    <script type="module" src="stage.js"></script>
+  </body>
+</html>

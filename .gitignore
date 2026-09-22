@@ -1,4 +1,6 @@
 node_modules/
 dist/
+release/
 *.zip
 .DS_Store
+_site/
