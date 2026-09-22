@@ -13,7 +13,7 @@ npm install
 npm test
 ```
 
-111 tests, ~7 s. No browser, no network, no accounts.
+112 tests, ~7 s. No browser, no network, no accounts.
 
 | Area | What it covers |
 |---|---|

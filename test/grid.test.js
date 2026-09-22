@@ -34,6 +34,34 @@ test("sets the platform grid aside rather than reordering it", () => {
   env.teardown();
 });
 
+test("parks the wrappers that hold only the grid, and puts ours outside them", () => {
+  const env = makeProfileDom();
+  env.addTile("C0");
+  const doc = env.window.document;
+
+  // Instagram's shape: the rows sit two plain wrappers deep, beside the
+  // profile header. It measures the outer wrapper to decide when to load
+  // more, so a sorted grid inside it made every scroll to the bottom fetch.
+  const column = doc.createElement("div");
+  const outer = doc.createElement("div");
+  const inner = doc.createElement("div");
+  env.grid.replaceWith(column);
+  column.append(doc.createElement("header"), outer);
+  outer.appendChild(inner);
+  inner.appendChild(env.grid);
+
+  const grid = renderGrid(items(2), { container: env.grid });
+
+  assert.equal(outer.dataset.sfbHidden, "parked");
+  assert.equal(outer.nextElementSibling, grid);
+  assert.equal(column.dataset.sfbHidden, undefined, "the header's column stays put");
+
+  clearGrid();
+  assert.equal(outer.dataset.sfbHidden, undefined);
+  assert.equal(outer.getAttribute("style"), null, "restored exactly");
+  env.teardown();
+});
+
 test("renders one tile per item, in the order given", () => {
   const env = makeProfileDom();
   env.addTile("C0");

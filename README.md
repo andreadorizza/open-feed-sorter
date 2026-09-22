@@ -127,7 +127,7 @@ src/
 ```bash
 npm run build    # → dist/
 npm run watch    # rebuild on change
-npm test         # 111 tests, no browser needed
+npm test         # 112 tests, no browser needed
 npm run ci       # test + build + verify the built extension (what CI runs)
 ```
 

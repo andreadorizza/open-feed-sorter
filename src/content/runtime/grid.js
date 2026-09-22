@@ -81,6 +81,26 @@ function setAside(container) {
   return "parked";
 }
 
+/**
+ * The element to set aside: the grid together with any wrapper that holds
+ * nothing else.
+ *
+ * Parking only the grid is not enough. Instagram decides when to load more by
+ * measuring a wrapper a few levels above its rows, and our grid used to go
+ * inside that wrapper — so the wrapper ended where our grid ended, and
+ * scrolling to the bottom of the sorted grid fetched another page into the
+ * hidden one. A wrapper whose only child is the grid is part of the grid, so
+ * it is parked too and our grid goes after it. Only plain divs are climbed: a
+ * landmark such as <main> is page structure even when the grid is all it holds.
+ */
+function outermostWrapper(container) {
+  let node = container;
+  while (node.parentElement?.tagName === "DIV" && node.parentElement.childElementCount === 1) {
+    node = node.parentElement;
+  }
+  return node;
+}
+
 const FALLBACK_GEOMETRY = { columns: 3, gap: 4 };
 
 /**
@@ -117,7 +137,8 @@ function measureGrid(original) {
 /** Measure once, hide the original, and put our grid in its place. */
 function mountGrid(container) {
   const { columns, gap } = measureGrid(container);
-  setAside(container);
+  const aside = outermostWrapper(container);
+  setAside(aside);
 
   const grid = document.createElement("div");
   grid.id = GRID_ID;
@@ -127,7 +148,7 @@ function mountGrid(container) {
   grid.style.columnGap = `${gap}px`;
   grid.style.rowGap = `${gap}px`;
 
-  container.after(grid);
+  aside.after(grid);
   mounted = { grid, container };
   return grid;
 }
