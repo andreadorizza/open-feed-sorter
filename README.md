@@ -7,6 +7,7 @@ score** — then export the results. No account, no backend, no paywall.
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/inbpbmepkjibdpakmmogmefkcgnfcbma?label=chrome%20web%20store)](https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-4285F4.svg)](src/manifest.json)
+[![Listed on Open Source Alternatives](https://www.opensourcealternatives.to/badge-osa.svg)](https://www.opensourcealternatives.to)
 
 <a href="https://ko-fi.com/andreadorizza">
   <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="36">
