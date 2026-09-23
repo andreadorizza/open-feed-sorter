@@ -7,11 +7,11 @@ cites the ones it relies on.
 
 Blocks marked `text` are the exact strings to paste. Character counts were
 measured on those blocks (Unicode code points, final newline excluded).
-`{{CWS_URL}}` stands for the listing URL, which exists only once the item is
+`https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma` stands for the listing URL, which exists only once the item is
 published.
 
-**Status:** 0.1.0 submitted for review on 22 September 2026, with these
-fields. Change this file first when the listing changes, so it stays the
+**Status:** 0.1.0 published on 23 September 2026 with these fields.
+Listing: https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma (item ID `inbpbmepkjibdpakmmogmefkcgnfcbma`). Change this file first when the listing changes, so it stays the
 record of what the store shows.
 
 Contents:
@@ -342,7 +342,7 @@ Fields from [S22]; deferred publishing from [S23].
 - The listing URL is known before publishing. The item ID is in the dashboard
   from the first upload, and `https://chromewebstore.google.com/detail/<item-id>`
   redirects to the full URL (checked on a live item, 22 September 2026). Use
-  that short form for `{{CWS_URL}}`: it keeps working if the name, and so the
+  that short form for `https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma`: it keeps working if the name, and so the
   slug, changes.
 
 Unlisted first is the better choice only if you want a few people to use the
@@ -428,7 +428,7 @@ This submission:
 - [ ] Untick automatic publishing, then submit. Review usually takes a few
       days and can take weeks; new developers and new items get closer review
       [S18]. Contact support if it passes three weeks [S18].
-- [ ] After publishing: replace `{{CWS_URL}}` everywhere (`README.md`,
+- [ ] After publishing: replace `https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma` everywhere (`README.md`,
       landing page, launch notes), and change the README's install section.
 
 ---
@@ -551,7 +551,7 @@ What changes if B is adopted: only the manifest `name`. The popup heading, the
 welcome page and `short_name` ("Feed Sorter") stay as they are; nothing in
 `scripts/` or `test/` reads the name. The listing's URL slug is taken from the
 name, which is another reason to use the short `/detail/<id>` form for
-`{{CWS_URL}}`.
+`https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma`.
 
 ### 6b. Summary
 

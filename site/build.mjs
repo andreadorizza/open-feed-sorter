@@ -35,7 +35,7 @@ const REPO_URL = "https://github.com/andreadorizza/open-feed-sorter";
 // THE STORE SWITCH. Paste the Chrome Web Store listing URL here once it exists,
 // e.g. "https://chromewebstore.google.com/detail/open-feed-sorter/<id>".
 // Every install button, the note under it and the structured data follow.
-const CHROME_WEB_STORE_URL = "";
+const CHROME_WEB_STORE_URL = "https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const install = CHROME_WEB_STORE_URL

@@ -4,6 +4,7 @@ Sort any Instagram or TikTok profile by views, likes, comments or **outlier
 score** — then export the results. No account, no backend, no paywall.
 
 [![CI](https://github.com/andreadorizza/open-feed-sorter/actions/workflows/ci.yml/badge.svg)](https://github.com/andreadorizza/open-feed-sorter/actions/workflows/ci.yml)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/inbpbmepkjibdpakmmogmefkcgnfcbma?label=chrome%20web%20store)](https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-4285F4.svg)](src/manifest.json)
 
@@ -52,8 +53,10 @@ one. Everything else runs entirely in the tab.
 
 ## Install
 
-Version 0.1.0 is in review for the Chrome Web Store. Until it is listed, build
-it and load it unpacked:
+**[Add to Chrome](https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma)**
+— free, and the same code as this repository.
+
+To build it yourself instead, load it unpacked:
 
 ```bash
 git clone https://github.com/andreadorizza/open-feed-sorter
