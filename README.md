@@ -144,7 +144,8 @@ npm run package  # build + verify → release/open-feed-sorter-<version>.zip for
 
 Pushing a `v<version>` tag runs the same checks in CI and attaches that zip to
 a GitHub release. The tag has to match the manifest's version; if it does not,
-the release fails before anything is built.
+the release fails before anything is built. The same zip is what goes to the
+store — see [Releasing](CONTRIBUTING.md#releasing).
 
 Adding a platform means writing one adapter and two three-line entry points —
 see [the guide](docs/ARCHITECTURE.md#adding-a-platform).

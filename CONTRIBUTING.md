@@ -81,6 +81,24 @@ via `test-utils/dom.js`.
 
 A bug fix should come with the test that would have caught it.
 
+## Releasing
+
+The extension is on the Chrome Web Store as
+[Open Feed Sorter for Instagram and TikTok](https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma).
+A release goes out in this order:
+
+1. Raise the version in `src/manifest.json` and `package.json` together —
+   `npm run package` fails if they disagree.
+2. Merge that to `main`, then push a `v<version>` tag. CI runs the suite and
+   attaches `release/open-feed-sorter-<version>.zip` to a GitHub release.
+3. Upload the same zip in the Developer Dashboard and submit it. Users get it
+   automatically once it is approved.
+
+The store's name and summary come from the manifest, so changing either means
+a new version and another review. A new permission also makes Chrome disable
+the extension until each user approves it — see
+[PRIVACY.md](PRIVACY.md) and `store/LISTING.md`.
+
 ## Scope
 
 Deliberately out of scope:
