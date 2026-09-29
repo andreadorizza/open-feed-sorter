@@ -227,7 +227,7 @@ please say so in an issue.
 ## Testing
 
 ```bash
-npm test          # 120 tests, no browser
+npm test          # 131 tests, no browser
 ```
 
 `core/` and `adapters/` are pure and tested directly. The collector, grid and

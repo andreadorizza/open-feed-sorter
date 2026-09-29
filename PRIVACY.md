@@ -1,6 +1,6 @@
 # Privacy policy
 
-**Open Feed Sorter** · effective 22 September 2026
+**Open Feed Sorter** · effective 29 September 2026
 
 Open Feed Sorter is a Chrome extension that sorts Instagram and TikTok profile
 feeds. It has no server, no account and no analytics. It reads what those sites
@@ -64,8 +64,16 @@ normally within seconds, and session storage is cleared when the tab closes in
 any case. It never holds any post data. Session storage belongs to the site, so
 Instagram's or TikTok's own scripts could see that entry while it exists.
 
-The extension uses no local storage, IndexedDB, extension storage or cookies.
-Nothing it handles outlives the tab.
+**The popup keeps two numbers.** So that it asks for a review once, a few
+sorts in, and not on every visit, the popup stores two values in the
+extension's own local storage under the key `sfb:feedback`: how many sorts you
+have started from it, and whether it has asked yet. They say nothing about which
+profiles you sorted or what was in them. That storage belongs to the extension,
+so Instagram and TikTok cannot read it, and Chrome deletes it when you remove
+the extension.
+
+Beyond that, the extension uses no IndexedDB, extension storage or cookies.
+Nothing it handles about a profile or its posts outlives the tab.
 
 ## What it sends
 
@@ -94,6 +102,25 @@ field listed above plus each post's link and outlier score, the baseline the
 scores were measured against, and when it was exported. What happens to the
 file after that is up to you.
 
+## Bug reports and reviews
+
+The popup has links for feedback. None of them sends anything by itself.
+
+- **Report a bug** opens GitHub's issue form in a new tab, with the extension's
+  version number filled in. Nothing else is added, and nothing is filed unless
+  you submit the form yourself.
+- **Copy debug info** puts a short text on your clipboard: the extension's
+  version, your browser and operating system, which site and which of the
+  profile's tabs the active tab is on, and how that tab's last sort ended and
+  with which settings. It never includes the profile's name, the page's address
+  or any post. It goes nowhere unless you paste it somewhere.
+- After your third sort, the popup asks once for a **review**, with a link to
+  the extension's Chrome Web Store page beside the bug link. The extension does
+  not know whether you click it.
+
+Once you are on GitHub or the Chrome Web Store, their own privacy policies
+apply.
+
 ## Third parties
 
 None. There is no analytics, advertising, tracking, crash reporting or
@@ -103,7 +130,7 @@ with the Chrome Web Store User Data Policy, including its Limited Use
 requirements.
 
 The only services involved are Instagram and TikTok themselves, which you are
-already using. Their own privacy policies cover your use of their sites.
+already using, and GitHub or the Chrome Web Store if you follow a link to them. Their own privacy policies cover your use of their sites.
 
 ## Permissions
 
@@ -123,8 +150,9 @@ any other part of Chrome.
 
 When you first install the extension, it opens a getting-started page. That
 page is packaged inside the extension; it loads nothing from the internet and
-records nothing. It links to the source code on GitHub, as the popup does, and
-that link opens only if you click it.
+records nothing. Like the popup, it links to the source code and the bug form
+on GitHub and to the store's review page, and those links open only if you click
+them.
 
 ## Children
 
@@ -143,7 +171,8 @@ it.
 ## Contact
 
 Questions or concerns: open an issue at
-<https://github.com/andreadorizza/open-feed-sorter/issues>.
+<https://github.com/andreadorizza/open-feed-sorter/issues>, or email
+[andreadorizza@gmail.com](mailto:andreadorizza@gmail.com).
 
 ---
 

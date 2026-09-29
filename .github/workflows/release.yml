@@ -44,11 +44,20 @@ jobs:
       - name: Package
         run: npm run package
 
+      # .github/release-notes/<tag>.md, when there is one, leads the notes.
+      # It is where a release says what PRIVACY.md promises it will: that the
+      # version changes what the extension reads, stores or sends.
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          notes="Get it from the [Chrome Web Store](https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma) once the store has approved this version. Something broken? [Report a bug](https://github.com/andreadorizza/open-feed-sorter/issues/new?template=bug.yml). Useful? A [review](https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma/reviews) helps other people find it."
+          extra=".github/release-notes/$GITHUB_REF_NAME.md"
+          if [ -f "$extra" ]; then
+            notes="$(cat "$extra")"$'\n\n'"$notes"
+          fi
           gh release create "$GITHUB_REF_NAME" \
             "release/open-feed-sorter-${GITHUB_REF_NAME#v}.zip" \
             --verify-tag \
-            --generate-notes
+            --generate-notes \
+            --notes "$notes"

@@ -20,7 +20,7 @@ Reels tab — one metric, on one tab, with nothing to compare or export. This
 extension reads the counts the page already fetched for its own rendering, and
 re-lays the grid out best-first.
 
-> **Status: v0.1, works but young.** Instagram and TikTok profile feeds are
+> **Status: v0.2, works but young.** Instagram and TikTok profile feeds are
 > supported and covered by tests. Expect breakage when either platform changes
 > its API — see [Adding a platform](docs/ARCHITECTURE.md#adding-a-platform) and
 > [Contributing](CONTRIBUTING.md).
@@ -138,7 +138,7 @@ src/
 ```bash
 npm run build    # → dist/
 npm run watch    # rebuild on change
-npm test         # 120 tests, no browser needed
+npm test         # 131 tests, no browser needed
 npm run ci       # test + build + verify the built extension (what CI runs)
 npm run package  # build + verify → release/open-feed-sorter-<version>.zip for the store
 ```
@@ -166,6 +166,17 @@ That said: automating a site is generally against Instagram's and TikTok's terms
 of service, whoever does it. Large runs still page through a lot of the feed.
 Use your own judgement about your own account, and prefer the smallest run that
 answers your question.
+
+## Feedback
+
+- **Something broken?** [Open a bug report](https://github.com/andreadorizza/open-feed-sorter/issues/new?template=bug.yml).
+  The popup's **Report a bug** link opens the same form with your version
+  filled in, and **Copy debug info** copies what the form asks for: never the
+  profile or its posts. No GitHub account? Email
+  [andreadorizza@gmail.com](mailto:andreadorizza@gmail.com).
+- **Useful?** A [review on the Chrome Web Store](https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma/reviews)
+  is what most helps other people find it. The popup asks once, after your
+  third sort, and then never again.
 
 ## Support
 

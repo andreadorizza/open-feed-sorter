@@ -1,6 +1,6 @@
 {
   "name": "open-feed-sorter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Open-source browser extension that sorts Instagram and TikTok profile feeds by views, likes, comments, date or outlier score \u2014 and exports the results.",
   "license": "MIT",

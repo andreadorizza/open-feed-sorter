@@ -70,9 +70,25 @@
       <button type="button" class="primary" id="reload">Reload tab</button>
     </main>
 
+    <!-- Shown once, a few sorts in. Both links, side by side, for everyone. -->
+    <aside class="ask" id="ask" hidden>
+      <p>Getting use out of it? A review helps other people find it.</p>
+      <p class="ask__links">
+        <a href="https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma/reviews" target="_blank" rel="noopener">Write a review</a>
+        <a href="https://github.com/andreadorizza/open-feed-sorter/issues/new?template=bug.yml" data-bug-link target="_blank" rel="noopener">Report a problem</a>
+      </p>
+    </aside>
+
+    <!-- The URLs live here rather than in popup.js: they are links the user
+         clicks, and scripts/verify-dist.mjs holds every bundle to the two
+         platforms' hosts. -->
     <footer class="foot">
       <span>No account. No tracking. No servers.</span>
-      <a href="https://github.com/andreadorizza/open-feed-sorter" target="_blank" rel="noopener">Source</a>
+      <nav class="foot__links">
+        <a href="https://github.com/andreadorizza/open-feed-sorter/issues/new?template=bug.yml" data-bug-link target="_blank" rel="noopener">Report a bug</a>
+        <button type="button" class="linkish" id="copyDebug">Copy debug info</button>
+        <a href="https://github.com/andreadorizza/open-feed-sorter" target="_blank" rel="noopener">Source</a>
+      </nav>
     </footer>
 
     <script src="popup.js" type="module"></script>

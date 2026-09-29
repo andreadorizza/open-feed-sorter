@@ -43,6 +43,12 @@ export function startContentRuntime() {
   let settled = false;
   /** The platform grid we replaced; found once per run, reused on re-sort. */
   let host = null;
+  /**
+   * How this tab's last sort went, for the popup's "Copy debug info". It lives
+   * in memory, so it covers the sort since the last reload — which is the one
+   * a bug report is about.
+   */
+  let lastRun = null;
 
   /**
    * Render the grid and re-seat the toolbar above it.
@@ -72,6 +78,7 @@ export function startContentRuntime() {
           surfaces: adapter.surfaces,
           profile: adapter.profileName(),
           profileExample: adapter.profileExample,
+          lastRun,
         });
         return false;
       }
@@ -105,12 +112,17 @@ export function startContentRuntime() {
     });
   }
 
+  function note(fields) {
+    if (lastRun) lastRun = { ...lastRun, ...fields };
+  }
+
   // ── page world → content ───────────────────────────────────────────────
   function listenForPageWorld() {
     listen(TO_CONTENT, (message) => {
       switch (message.type) {
         case PageMsg.PROGRESS:
           settled = true;
+          note({ outcome: "running", collected: message.collected });
           if (message.phase === "baseline") {
             banner.setTitle(`Got ${message.collected}. Reading a few older posts…`);
             banner.setSubtitle("Needed to score outliers. Stop keeps everything you asked for.");
@@ -127,6 +139,12 @@ export function startContentRuntime() {
         case PageMsg.DONE:
           settled = true;
           meta = message.meta;
+          note({
+            outcome: "done",
+            items: message.items.length,
+            reason: meta.reason,
+            outlier: meta.outlier?.status,
+          });
           render(message.items);
           // The run left the page scrolled to wherever the feed ended. Start
           // the user at the top, where the toolbar and rank #1 are.
@@ -139,11 +157,13 @@ export function startContentRuntime() {
 
         case PageMsg.EMPTY:
           settled = true;
+          note({ outcome: "empty", reason: message.reason });
           banner.finish("Nothing matched — the original feed is untouched.");
           break;
 
         case PageMsg.FAILED:
           settled = true;
+          note({ outcome: "failed", error: message.message });
           banner.finish(`Sort failed: ${message.message}`, { autoHideMs: 8000 });
           break;
       }
@@ -160,10 +180,19 @@ export function startContentRuntime() {
   function resumePendingRun() {
     const run = takeRun();
     if (!run) return;
+    lastRun = {
+      surface: run.surface,
+      sortBy: run.sortBy,
+      mode: run.mode,
+      count: run.count,
+      range: run.range,
+      outcome: "running",
+    };
 
     // No claim stamp means the page-world script never ran at all — the one
     // failure that would otherwise leave the user staring at an unchanged feed.
     if (!run.claimedAt) {
+      note({ outcome: "not-started" });
       banner.show({ title: "Couldn't start the sort", onStop: () => banner.hide() });
       banner.finish("Couldn't start the sort — try reloading the page.", { autoHideMs: 8000 });
       return;
@@ -181,6 +210,7 @@ export function startContentRuntime() {
 
     setTimeout(() => {
       if (settled) return;
+      note({ outcome: "no-feed" });
       banner.finish("The feed didn't load — try reloading the page.", { autoHideMs: 8000 });
     }, STALL_TIMEOUT_MS);
   }
