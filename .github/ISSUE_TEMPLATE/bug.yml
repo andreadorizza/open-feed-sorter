@@ -1,0 +1,67 @@
+name: Bug report
+description: Something doesn't work, or gives the wrong result.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting it. The fastest route to a fix: open the extension's
+        popup **on the tab where it went wrong**, click **Copy debug info**, and
+        paste it below. It holds the extension version, your browser, the site,
+        and how the last sort ended. It never includes the profile name or any
+        post.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: And what you expected instead. A screenshot helps.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a TikTok profile
+        2. Sort by views, latest 100
+        3. It stops at 36
+    validations:
+      required: false
+
+  - type: dropdown
+    id: site
+    attributes:
+      label: Site
+      options:
+        - Instagram
+        - TikTok
+        - Both
+    validations:
+      required: true
+
+  - type: textarea
+    id: debug
+    attributes:
+      label: Debug info
+      description: From the popup's **Copy debug info** link.
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: profile
+    attributes:
+      label: A public profile where it happens (optional)
+      description: This makes the bug much easier to reproduce. Leave it blank if you'd rather not share one. This issue is public.
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Extension version
+      description: The popup's "Report a bug" link fills this in. Otherwise, find it in chrome://extensions.
+    validations:
+      required: false

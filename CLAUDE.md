@@ -6,7 +6,7 @@
 npm install
 npm run build     # → dist/   (load unpacked in chrome://extensions)
 npm run watch     # rebuild on change
-npm test          # 120 tests, no browser
+npm test          # 131 tests, no browser
 npm run ci        # test → build → verify: what CI runs
 npm run package   # build → verify → release/open-feed-sorter-<version>.zip
 ```

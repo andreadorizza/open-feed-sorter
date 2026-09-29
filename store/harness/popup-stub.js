@@ -10,7 +10,7 @@
 const tab = () => parent.document.getElementById("page").contentWindow;
 
 globalThis.chrome = {
-  runtime: { id: "harness", getURL: (path) => `/src/${path}` },
+  runtime: { id: "harness", getURL: (path) => `/src/${path}`, getManifest: () => ({ version: "0.1.0" }) },
   tabs: {
     query: async () => [{ id: 1, active: true, url: tab().__harness.tabUrl }],
     get: async () => ({ id: 1, active: true, url: tab().__harness.tabUrl }),

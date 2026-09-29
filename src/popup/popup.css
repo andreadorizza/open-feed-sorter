@@ -130,12 +130,38 @@ select {
 .go__link:hover { background: var(--ink); color: var(--lcd); }
 .go__link:active { transform: translate(3px, 3px); box-shadow: none; }
 
+.ask {
+  margin: 0 16px 16px;
+  padding: 10px 12px;
+  border: 2px dotted var(--dim);
+}
+.ask p { margin: 0; }
+.ask p + p { margin-top: 6px; }
+.ask__links { display: flex; gap: 16px; }
+.ask a { color: var(--ink); }
+
 .foot {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 6px;
   padding: 10px 16px;
   border-top: 2px solid var(--ink);
   color: var(--dim);
 }
-.foot a { color: var(--ink); }
+.foot__links { display: flex; justify-content: space-between; gap: 8px; white-space: nowrap; }
+.foot a, .linkish { color: var(--ink); }
+
+/* A button, because it acts rather than navigates — dressed as the links
+   beside it. */
+.linkish {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.linkish:focus-visible, .foot a:focus-visible, .ask a:focus-visible {
+  outline: 2px dashed var(--ink);
+  outline-offset: 2px;
+}

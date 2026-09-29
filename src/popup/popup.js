@@ -11,6 +11,7 @@ import { RANGE_PRESETS } from "../core/dates.js";
 import { estimatePauseMs } from "../page/runtime/pace.js";
 import { ADAPTERS, adapterForHost } from "../adapters/index.js";
 import { dotIcon } from "../content/runtime/dots.js";
+import { recordRunStarted, takeReviewAsk, describeBrowser, describeDiagnostics } from "../core/feedback.js";
 
 const ui = {
   context: document.getElementById("context"),
@@ -28,13 +29,19 @@ const ui = {
   rangeField: document.getElementById("rangeField"),
   note: document.getElementById("note"),
   run: document.getElementById("run"),
+  ask: document.getElementById("ask"),
+  copyDebug: document.getElementById("copyDebug"),
 };
+
+/** What "Copy debug info" reports about the active tab; filled in by init. */
+const debug = { tab: "not checked", lastRun: null };
 
 init();
 
 async function init() {
   fillRanges();
   for (const wrap of document.querySelectorAll(".select")) wrap.appendChild(dotIcon("caret"));
+  wireFeedback();
 
   const tab = await activeTab();
   const context = tab ? await askContext(tab.id) : null;
@@ -45,6 +52,7 @@ async function init() {
     const site = siteOf(tab);
     if (site) {
       ui.context.textContent = `${site.label} · needs a reload`;
+      debug.tab = `${site.label}, no reply from the content script`;
       ui.stale.hidden = false;
       ui.reload.addEventListener("click", () => {
         chrome.tabs.reload(tab.id);
@@ -54,19 +62,24 @@ async function init() {
     }
 
     ui.context.textContent = "Not an Instagram or TikTok tab";
+    debug.tab = "not Instagram or TikTok";
     fillDestinations();
     ui.elsewhere.hidden = false;
     return;
   }
 
+  debug.lastRun = context.lastRun || null;
+
   if (!context.surface) {
     ui.context.textContent = `${context.label} · not a profile page`;
+    debug.tab = `${context.label}, not a profile page`;
     ui.example.textContent = context.profileExample || "";
     ui.notProfile.hidden = false;
     return;
   }
 
   const surface = context.surfaces?.[context.surface];
+  debug.tab = `${context.label}, ${surface?.label || context.surface} tab of a profile`;
   ui.context.textContent = `${context.label} · ${surface?.label || context.surface}${
     context.profile ? ` · @${context.profile}` : ""
   }`;
@@ -76,6 +89,48 @@ async function init() {
   wireMode();
 
   ui.run.addEventListener("click", () => startRun(tab.id));
+}
+
+/**
+ * The bug links carry the version into the issue form, and the review request
+ * shows once, a few sorts in. Nothing here makes a request: the links open only
+ * when clicked, and debug info goes to the clipboard for the user to read and
+ * paste.
+ */
+function wireFeedback() {
+  const { version } = chrome.runtime.getManifest();
+
+  for (const link of document.querySelectorAll("[data-bug-link]")) {
+    const url = new URL(link.href);
+    url.searchParams.set("version", version);
+    link.href = url.href;
+  }
+
+  if (takeReviewAsk()) ui.ask.hidden = false;
+
+  const label = ui.copyDebug.textContent;
+  let reset;
+  const flash = (text) => {
+    ui.copyDebug.textContent = text;
+    clearTimeout(reset);
+    reset = setTimeout(() => (ui.copyDebug.textContent = label), 2000);
+  };
+
+  ui.copyDebug.addEventListener("click", async () => {
+    const text = describeDiagnostics({
+      version,
+      browser: describeBrowser(navigator.userAgentData?.brands, navigator.userAgent),
+      os: navigator.userAgentData?.platform || navigator.platform || "unknown OS",
+      tab: debug.tab,
+      lastRun: debug.lastRun,
+    });
+    try {
+      await navigator.clipboard.writeText(text);
+      flash("Copied");
+    } catch {
+      flash("Couldn't copy");
+    }
+  });
 }
 
 /** One button per supported site, so the way forward is a click, not a hunt. */
@@ -202,6 +257,7 @@ async function startRun(tabId) {
   const response = await sendToTab(tabId, { type: "sfb:run", config });
 
   if (response?.ok) {
+    recordRunStarted();
     window.close();
   } else {
     ui.run.disabled = false;

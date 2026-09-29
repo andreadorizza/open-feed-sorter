@@ -104,10 +104,11 @@ FAIR USE
 It reads what the site has already sent to your browser, at the pace of a person scrolling, with a random pause between pages. It never sends feed requests of its own. Even so, automating a site is generally against the platforms' terms of service, whoever does it. Use your own judgement about your own account, and prefer the smallest run that answers your question.
 
 LIMITS
-This is version 0.1. It relies on how each site loads its feed, so a change on either site can break it until an update ships. It does no transcription and no Google Sheets export, because both would need a server.
+This is an early version. It relies on how each site loads its feed, so a change on either site can break it until an update ships. It does no transcription and no Google Sheets export, because both would need a server.
 
 SOURCE AND SUPPORT
 Source code, issues and privacy policy: https://github.com/andreadorizza/open-feed-sorter
+Found a bug? Use Report a bug in the popup, or email andreadorizza@gmail.com.
 MIT licence. Free, with no paid tier.
 
 Not affiliated with Instagram, Meta, TikTok or ByteDance.
@@ -165,7 +166,7 @@ The small and marquee tiles cannot be localised; screenshots and video can
 |---|---|---|
 | Official URL | leave empty for now | Offers only sites verified as yours in Google Search Console, and shows a verified mark when set [S5]. Once the landing page is live, verify `https://andreadorizza.github.io/open-feed-sorter/` in Search Console (HTML-tag method on that page) and pick it here. Whether the dashboard accepts a path-level GitHub Pages property could not be checked without the dashboard. |
 | Homepage URL | `https://andreadorizza.github.io/open-feed-sorter/` once it is live; until then `https://github.com/andreadorizza/open-feed-sorter` | Matches `homepage_url` in the manifest. |
-| Support URL | `https://github.com/andreadorizza/open-feed-sorter/issues` | The privacy policy already names issues as the contact route. |
+| Support URL | `https://github.com/andreadorizza/open-feed-sorter/issues/new?template=bug.yml` | Opens the bug form directly. People without a GitHub account can use the contact email, andreadorizza@gmail.com, which the privacy policy, README, welcome page and description also give. |
 | Mature content | Off | Nothing in the extension is mature. |
 
 ---

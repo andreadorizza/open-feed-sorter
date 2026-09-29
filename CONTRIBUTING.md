@@ -88,7 +88,10 @@ The extension is on the Chrome Web Store as
 A release goes out in this order:
 
 1. Raise the version in `src/manifest.json` and `package.json` together —
-   `npm run package` fails if they disagree.
+   `npm run package` fails if they disagree. If the version changes what the
+   extension reads, stores or sends, add `.github/release-notes/v<version>.md`
+   saying so: [PRIVACY.md](PRIVACY.md) promises it, and the release workflow
+   puts that file at the top of the notes.
 2. Merge that to `main`, then push a `v<version>` tag. CI runs the suite and
    attaches `release/open-feed-sorter-<version>.zip` to a GitHub release.
 3. Upload the same zip in the Developer Dashboard and submit it. Users get it
