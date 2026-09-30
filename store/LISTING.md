@@ -10,7 +10,9 @@ measured on those blocks (Unicode code points, final newline excluded).
 `https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma` stands for the listing URL, which exists only once the item is
 published.
 
-**Status:** 0.1.0 published on 23 September 2026 with these fields.
+**Status:** 0.1.0 published on 23 September 2026. 0.2.0 submitted for review on
+30 September 2026 with the description, Support URL and item support setting
+below.
 Listing: https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma (item ID `inbpbmepkjibdpakmmogmefkcgnfcbma`). Change this file first when the listing changes, so it stays the
 record of what the store shows.
 
@@ -168,6 +170,13 @@ The small and marquee tiles cannot be localised; screenshots and video can
 | Homepage URL | `https://andreadorizza.github.io/open-feed-sorter/` once it is live; until then `https://github.com/andreadorizza/open-feed-sorter` | Matches `homepage_url` in the manifest. |
 | Support URL | `https://github.com/andreadorizza/open-feed-sorter/issues/new?template=bug.yml` | Opens the bug form directly. People without a GitHub account can use the contact email, andreadorizza@gmail.com, which the privacy policy, README, welcome page and description also give. |
 | Mature content | Off | Nothing in the extension is mature. |
+
+### Dashboard settings
+
+| Setting | Value | Notes |
+|---|---|---|
+| Item support | On | Adds a Support section to the listing, where anyone with a Google account can post a problem. It is the route for people without GitHub, and a place to report a bug other than a review. Answer posts in the dashboard; check it about once a week. |
+| Google Analytics 4 | Off | It would measure the listing page, not the extension. The dashboard's own impressions, installs and uninstalls are enough for now, and the pitch is "no tracking". |
 
 ---
 
