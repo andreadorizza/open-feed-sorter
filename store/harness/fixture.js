@@ -61,11 +61,11 @@ export const OUTLIERS = new Map([
 
 /** The same account on TikTok, where different posts took off. */
 export const TIKTOK_OUTLIERS = new Map([
-  [11, { score: 8.4, cover: "ai-websites" }],
+  [11, { score: 8.4, cover: "vibe-coding-sicuro" }],
   [7, { score: 6.1, cover: "open-feed-sorter-2" }],
-  [19, { score: 3.3, cover: "humanizer" }],
-  [30, { score: 2.4, cover: "vibe-coding-sicuro" }],
-  [26, { score: 2.1, cover: "freellmapi" }],
+  [19, { score: 3.3, cover: "dashboard-finanze" }],
+  [30, { score: 2.4, cover: "siti-animati" }],
+  [26, { score: 2.1, cover: "nvidia-api" }],
 ]);
 
 /**
@@ -85,31 +85,41 @@ const CHATTY = new Map([
 const SCREEN = 16;
 
 /**
- * The sets of posts a screenshot can show together: the feed as it loads,
- * newest first, and the top of each sort a shot uses, over the whole feed
- * and over a 50-post run.
+ * The sets of posts a screenshot can show together, most visible first: the
+ * feed as it loads, newest first; the last two rows the "collecting" shot
+ * stops on (36 posts in, see stage.js), the whole bottom row before the
+ * cut-off one above it; and the top of each sort a shot uses, over the whole
+ * feed and over a 50-post run.
  */
 function screens(list) {
   const top = (field, from = list) => from.slice().sort((a, b) => b[field] - a[field]).slice(0, SCREEN);
-  return [list.slice(0, SCREEN), top("views"), top("views", list.slice(0, 50)), top("comments")];
+  const collecting = [...list.slice(32, 36), ...list.slice(28, 32)];
+  return [list.slice(0, SCREEN), collecting, top("views"), top("views", list.slice(0, 50)), top("comments")];
 }
 
 /**
  * Give every post a cover. Outliers and the chatty posts get the one named
- * above; every other post on a screen gets the first cover in COVERS that no
- * post on its screens has yet. Posts no shot shows take covers in turn.
+ * above. Every other post on a screen gets the first cover in COVERS that no
+ * post on its screens has yet, and the posts nearest the top of their screen
+ * choose first, so the newest covers land where they are seen. Posts no shot
+ * shows take covers in turn.
  */
 function assignCovers(list) {
+  const all = screens(list);
   const near = new Map(list.map((post) => [post, new Set()]));
-  for (const screen of screens(list)) {
+  for (const screen of all) {
     for (const post of screen) for (const other of screen) if (other !== post) near.get(post).add(other);
   }
 
   const cover = new Map();
   for (const post of list) if (post.cover) cover.set(post, post.cover);
 
-  for (const post of list) {
-    if (cover.has(post) || near.get(post).size === 0) continue;
+  // Rank 0 of every screen, then rank 1, and so on.
+  const byRank = [];
+  for (let rank = 0; rank < SCREEN; rank++) for (const screen of all) if (screen[rank]) byRank.push(screen[rank]);
+
+  for (const post of byRank) {
+    if (cover.has(post)) continue;
     const taken = new Set([...near.get(post)].map((other) => cover.get(other)));
     const free = COVERS.find(({ slug }) => !taken.has(slug));
     if (!free) throw new Error(`fixture: no cover left for post ${post.index}; add covers or shrink SCREEN`);
