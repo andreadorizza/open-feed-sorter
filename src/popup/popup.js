@@ -172,9 +172,10 @@ function fillSortKeys(metrics) {
     option.textContent = SORT_KEYS[key].label;
     ui.sortBy.appendChild(option);
   }
-  // Views is the metric people come here for; fall back to likes where a
-  // surface has no view counts.
-  ui.sortBy.value = metrics.includes("views") ? "views" : "likes";
+  // Each surface lists the metric worth sorting by first: views where the
+  // platform returns them, likes on Instagram's Posts tab, whose payload has
+  // no view counts even for reels. Defaulting to views there sorted nothing.
+  ui.sortBy.value = metrics[0] || "views";
   updateNote();
   ui.sortBy.addEventListener("change", updateNote);
 }

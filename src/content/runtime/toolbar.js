@@ -6,7 +6,7 @@
  * views" to "most comments" is a sort and a re-render, with no second scrape.
  */
 
-import { SORT_KEYS, sortItems, availableSortKeys } from "../../core/sort.js";
+import { SORT_KEYS, sortItems, availableSortKeys, resolveSortKey } from "../../core/sort.js";
 import { explainBaseline, OUTLIER_DEFAULTS } from "../../core/outlier.js";
 import { dotIcon } from "./dots.js";
 import { toCsv } from "../../core/export/csv.js";
@@ -141,15 +141,18 @@ export class Toolbar {
     }
   }
 
-  /** The run's sort, or what it fell back to when outliers couldn't be scored. */
+  /**
+   * The sort the grid is in: the run's own, or what it fell back to when the
+   * asked-for one had nothing to sort on. Showing anything else puts a label
+   * over a grid that isn't in that order.
+   */
   _initialKey(items, meta) {
-    const key = meta.config?.sortBy || "views";
-    if (key === "outlier" && !isScored(items)) return meta.outlier?.metric || "views";
-    return key;
+    const key = meta.sortBy || meta.config?.sortBy || "views";
+    return resolveSortKey(items, key, this._fallbackMetric(meta));
   }
 
-  _fallbackMetric() {
-    return this.meta.outlier?.metric || "views";
+  _fallbackMetric(meta = this.meta) {
+    return meta.outlier?.metric || "views";
   }
 
   _export(format) {

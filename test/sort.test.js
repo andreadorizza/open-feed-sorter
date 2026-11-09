@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sortItems, availableSortKeys } from "../src/core/sort.js";
+import { sortItems, availableSortKeys, resolveSortKey } from "../src/core/sort.js";
 
 const items = [
   { id: "a", views: 100, likes: 5, createdAtMs: 300 },
@@ -53,6 +53,38 @@ test("outlier uses scores once they are present", () => {
     { id: "b", views: 900, outlierScore: 1 },
   ];
   assert.deepEqual(sortItems(scored, "outlier").map((i) => i.id), ["a", "b"]);
+});
+
+test("a metric no item carries gives way to the surface metric", () => {
+  // Instagram's Posts tab: no view counts at all, reels included. Sorting by
+  // views there left the grid in feed order.
+  const posts = [
+    { id: "a", views: null, likes: 5 },
+    { id: "b", views: null, likes: 9 },
+  ];
+  assert.equal(resolveSortKey(posts, "views", "likes"), "likes");
+  assert.equal(resolveSortKey(posts, "comments", "likes"), "likes");
+});
+
+test("a metric some items carry is kept, even with gaps", () => {
+  const mixed = [
+    { id: "a", views: null, likes: 5 },
+    { id: "b", views: 40, likes: 9 },
+  ];
+  assert.equal(resolveSortKey(mixed, "views", "likes"), "views");
+});
+
+test("an unscored outlier sort resolves to the surface metric", () => {
+  assert.equal(resolveSortKey(items, "outlier", "views"), "views");
+  assert.equal(resolveSortKey([{ outlierScore: 2 }], "outlier", "views"), "outlier");
+});
+
+test("dates always resolve to themselves", () => {
+  assert.equal(resolveSortKey(items, "oldest", "views"), "oldest");
+});
+
+test("the key is kept when the fallback has nothing to sort on either", () => {
+  assert.equal(resolveSortKey([{ id: "a" }], "views", "likes"), "views");
 });
 
 test("an unknown key leaves the order alone", () => {

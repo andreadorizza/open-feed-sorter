@@ -227,9 +227,13 @@ function summarise({ items, meta }) {
   if (meta.reason === "stopped") text = `Stopped — showing ${items.length} sorted.`;
   if (meta.reason === "stalled") text = `Showing ${items.length} — the feed stopped loading more.`;
 
-  // Asked for outliers and didn't get them: say so here, not only in the toolbar.
-  if (meta.config?.sortBy === "outlier" && !usableBaseline(meta.outlier)) {
+  // Asked for one sort and got another: say so here, not only in the toolbar.
+  const asked = meta.config?.sortBy;
+  if (asked === "outlier" && !usableBaseline(meta.outlier)) {
     text += ` Too few older posts to score outliers, so sorted by ${meta.outlier?.metric || "views"}.`;
+  } else if (meta.sortBy && asked && meta.sortBy !== asked) {
+    // Only a metric falls back, so `asked` is "views", "likes" and so on.
+    text += ` No ${asked.replace(/s$/, "")} counts on these posts, so sorted by ${meta.sortBy}.`;
   }
   return text;
 }

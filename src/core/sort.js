@@ -29,8 +29,8 @@ function compareBy(field, dir) {
   return (a, b) => {
     const av = a?.[field];
     const bv = b?.[field];
-    const aMissing = av == null || Number.isNaN(av);
-    const bMissing = bv == null || Number.isNaN(bv);
+    const aMissing = !isPresent(av);
+    const bMissing = !isPresent(bv);
     if (aMissing && bMissing) return 0;
     if (aMissing) return 1;
     if (bMissing) return -1;
@@ -57,6 +57,29 @@ export function sortItems(items, key, { outlierFallback = "views" } = {}) {
   }
 
   return list.sort(compareBy(spec.field, spec.dir));
+}
+
+/**
+ * The key a set of items can actually be sorted by.
+ *
+ * A metric that no item carries sinks every item equally, so sorting by it
+ * leaves the feed order untouched — a grid that claims to be sorted and isn't.
+ * Instagram's Posts tab is the real case: its payload has no view counts at
+ * all, reels included. Such a key gives way to `fallback`, the surface's own
+ * metric; an outlier sort with nothing scored gives way the same way.
+ */
+export function resolveSortKey(items, key, fallback) {
+  const list = Array.isArray(items) ? items : [];
+  const carried = (candidate) => {
+    const field = SORT_KEYS[candidate]?.field;
+    return Boolean(field) && list.some((item) => isPresent(item?.[field]));
+  };
+  if (!SORT_KEYS[key] || carried(key)) return key;
+  return carried(fallback) ? fallback : key;
+}
+
+function isPresent(value) {
+  return value != null && !Number.isNaN(value);
 }
 
 /** Sort keys that make sense for a set of items, in display order. */

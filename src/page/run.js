@@ -14,7 +14,7 @@
 
 import { claimRun } from "../core/session.js";
 import { post, listen, PageMsg, ContentMsg, TO_PAGE, TO_CONTENT } from "../core/protocol.js";
-import { sortItems } from "../core/sort.js";
+import { sortItems, resolveSortKey } from "../core/sort.js";
 import { computeBaseline, stampScores, OUTLIER_DEFAULTS } from "../core/outlier.js";
 import { resolveRange } from "../core/dates.js";
 import { StopSignal } from "./runtime/abort.js";
@@ -99,13 +99,17 @@ function finishRun(adapter, config, result) {
   const outlier = computeBaseline(pool, { metric });
   if (outlier.status === "ok") stampScores(items, outlier);
 
-  const sorted = sortItems(items, config.sortBy, { outlierFallback: metric });
+  // The key the run sorted by, which is not always the one asked for: a metric
+  // none of these items carries would leave the feed in its original order.
+  const sortBy = resolveSortKey(items, config.sortBy, metric);
+  const sorted = sortItems(items, sortBy, { outlierFallback: metric });
 
   post(TO_CONTENT, PageMsg.DONE, {
     items: sorted,
     meta: {
       reason,
       config,
+      sortBy,
       outlier,
       collected: items.length,
       poolSize: pool.length,

@@ -138,7 +138,7 @@ src/
 ```bash
 npm run build    # → dist/
 npm run watch    # rebuild on change
-npm test         # 131 tests, no browser needed
+npm test         # 142 tests, no browser needed
 npm run ci       # test + build + verify the built extension (what CI runs)
 npm run package  # build + verify → release/open-feed-sorter-<version>.zip for the store
 ```

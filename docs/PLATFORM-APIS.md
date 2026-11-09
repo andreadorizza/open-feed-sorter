@@ -70,7 +70,7 @@ media_type                  1 photo · 2 video · 8 carousel
 taken_at                    unix seconds — Posts only
 like_count
 comment_count
-play_count / view_count     videos only
+play_count / view_count     Reels tab only (see below)
 caption.text
 user.username
 image_versions2.candidates[]      {url, width}; order is not guaranteed
@@ -78,10 +78,21 @@ timeline_pinned_user_ids[]        non-empty ⇒ pinned on the Posts grid
 clips_tab_pinned_user_ids[]       non-empty ⇒ pinned on the Reels tab
 ```
 
-**Photos and carousels have no view count at all.** An Instagram Posts grid can
-therefore only be sorted and scored on likes. Treating the missing value as
-zero is a real bug, not a theoretical one — it drags an outlier baseline toward
-zero across a photo-heavy profile.
+**The Posts timeline has no view counts at all.** Photos and carousels never
+carry one, and reels on that timeline arrive with `view_count: null` and no
+`play_count` (seen November 2026). An Instagram Posts grid can therefore only
+be sorted and scored on likes. A "Most views" run there sorts by likes and the
+banner says so: sorting on a metric no item carries would leave the grid in
+feed order. Treating the missing value as zero is a real bug, not a
+theoretical one — it drags an outlier baseline toward zero.
+
+### Tile images
+
+A tile mounts its `<img>` with the final `src` and inline `visibility: hidden`,
+and the style is cleared when the image loads. A real `src` is therefore not a
+loaded image. The collector waits for the style to clear, and strips it from
+the markup it captures, since the copy in the sorted grid has no load handler
+to clear it.
 
 ### Dates
 

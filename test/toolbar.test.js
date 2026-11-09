@@ -50,6 +50,22 @@ test("a scored run offers the outlier sort and explains the baseline", () => {
   env.teardown();
 });
 
+test("shows the sort the grid is in, not one it had nothing to sort on", () => {
+  // A "Most views" run on Instagram's Posts tab, where no item has views.
+  const env = makeProfileDom();
+  const list = items(false).map((item) => ({ ...item, views: null }));
+  const meta = {
+    config: { sortBy: "views" },
+    sortBy: "likes",
+    outlier: { status: "insufficient", baseline: null, metric: "likes", poolSize: 3 },
+  };
+  const select = mount(new Toolbar({}), list, meta, env).querySelector(".sfb-toolbar__sort");
+
+  assert.equal(select.value, "likes");
+  assert.equal(select.querySelector('option[value="views"]'), null);
+  env.teardown();
+});
+
 test("a re-sort survives the toolbar being rebuilt", () => {
   const env = makeProfileDom();
   const meta = { config: { sortBy: "views" }, outlier: null };
