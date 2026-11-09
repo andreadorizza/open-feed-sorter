@@ -37,7 +37,11 @@ export const SHOTS = {
     platform: "instagram",
     hold: 36,
     run: { ...RUN, sortBy: "outlier", count: 100 },
-    until: (win) => bannerSays(win, "Collected 36 of 100"),
+    // The spinner too: it shows once the collector scrolls to the end of the
+    // held feed. Laid out before then, the page measured a hidden spinner and
+    // scrolled to whatever rows happened to be a screen above it.
+    until: (win) =>
+      bannerSays(win, "Collected 36 of 100") && !win.document.querySelector(".feed__spinner").hidden,
     layout: spinnerNearBottom,
   },
 
