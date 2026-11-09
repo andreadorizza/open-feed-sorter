@@ -12,7 +12,9 @@ published.
 
 **Status:** 0.1.0 published on 23 September 2026. 0.2.0 submitted for review on
 30 September 2026 with the description, Support URL and item support setting
-below.
+below. 0.2.1 submitted for review on 9 November 2026 with five new
+screenshots: the maintainer's own profile and video covers, with invented
+counts (see `store/screenshots/README.md`). The text fields did not change.
 Listing: https://chromewebstore.google.com/detail/inbpbmepkjibdpakmmogmefkcgnfcbma (item ID `inbpbmepkjibdpakmmogmefkcgnfcbma`). Change this file first when the listing changes, so it stays the
 record of what the store shows.
 
