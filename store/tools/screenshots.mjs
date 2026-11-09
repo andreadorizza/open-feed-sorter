@@ -14,15 +14,15 @@
  *      substitution is src/adapters/index.js → store/harness/adapter.js; see
  *      that file for why.
  *   2. Serves the repository on 127.0.0.1, including a fake feed endpoint
- *      that answers with the fictional account in each platform's JSON shape.
+ *      that answers with the demo account in each platform's JSON shape.
  *   3. Drives headless Google Chrome over the DevTools protocol: one page per
  *      shot, rendered at a device scale factor of 1.25 so the UI is large
  *      enough to read when the store shrinks the image.
  *   4. Re-encodes each capture as 8-bit RGB PNG (no alpha channel, as the
  *      store asks) and checks every written file from its bytes.
  *
- * Nothing is downloaded and no network request leaves the machine. All data is
- * fictional — see store/harness/fixture.js.
+ * Nothing is downloaded and no network request leaves the machine. Every count
+ * is invented — see store/harness/fixture.js.
  */
 
 import * as esbuild from "esbuild";
@@ -146,6 +146,7 @@ const TYPES = {
   ".json": "application/json",
   ".woff2": "font/woff2",
   ".png": "image/png",
+  ".jpg": "image/jpeg",
   ".svg": "image/svg+xml",
 };
 
@@ -156,7 +157,7 @@ const PAGE_SIZE = 12;
 
 async function feedPages() {
   const fixture = await import(join(HARNESS, "fixture.js"));
-  // The same bakery on both platforms, with its own numbers on each.
+  // The same account on both platforms, with its own numbers on each.
   return {
     instagram: fixture.instagramReels(fixture.posts(100)),
     tiktok: fixture.tiktokVideos(

@@ -1,28 +1,42 @@
 /**
- * The fictional account every screenshot shows.
+ * The account every screenshot shows.
  *
- * "Crumbwell Bakery" does not exist. Its posts, counts, dates and captions are
- * generated here from a fixed seed, in the raw JSON shapes the two platforms'
- * feed responses use. The generator serves them as the fake site's feed
- * endpoint, so they reach the extension the way a real feed does: fetched by
- * the page, caught by the extension's network hook, parsed by the real adapter.
+ * It is the maintainer's own profile, with the covers of the maintainer's own
+ * videos (see covers.js). Everything else is invented: the posts' counts,
+ * dates and order, and the profile's post and follower counts, are generated
+ * here from a fixed seed, in the raw JSON shapes the two platforms' feed
+ * responses use. The generator serves them as the fake site's feed endpoint,
+ * so they reach the extension the way a real feed does: fetched by the page,
+ * caught by the extension's network hook, parsed by the real adapter.
  *
  * The counts are shaped to make the outlier scores worth looking at: most
  * posts sit near the account's median, a handful beat it by 2x–8x, and the
  * two newest are still gathering views.
  */
 
-import { rng, thumbnail } from "./thumbs.js";
+import { COVERS, coverUrl } from "./covers.js";
 
 export const ACCOUNT = {
-  handle: "crumbwell.bakery",
-  name: "Crumbwell Bakery",
-  bio: "Small-batch sourdough, laminated pastry and whatever came out of the oven this morning.",
-  note: "Fictional demo account",
+  handle: "intelligenza_artificiale_dori",
+  name: "Dori ~ Intelligenza Artificiale",
+  bio: "☯️ L'AI o si usa o si subisce",
+  note: "Sample numbers",
   posts: 212,
   followers: "18.4K",
   following: 301,
 };
+
+/** mulberry32: small, fast, and good enough for shaping counts. */
+export function rng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 /**
  * "Now", for the fixture. Dates and the three-day freshness cut-off are
@@ -33,63 +47,81 @@ export const NOW = Date.UTC(2026, 8, 21, 15, 0);
 
 const DAY = 24 * 60 * 60 * 1000;
 
-/** What the bakery posts about, and which abstract motif stands in for it. */
-const TOPICS = [
-  ["boule", "Scoring a country boule, four ways"],
-  ["croissant", "Croissant cross-section: 27 layers of butter"],
-  ["cinnamon", "The cinnamon bun pull"],
-  ["baguettes", "Morning bake: sixty baguettes before 7am"],
-  ["macarons", "Pistachio macarons, take two"],
-  ["starter", "Feeding the rye starter (day 4)"],
-  ["cookies", "Brown butter cookies, crisp edge and soft middle"],
-  ["pie", "Lattice cherry pie, start to finish"],
-  ["doughnut", "Friday doughnuts"],
-  ["tray", "A tray of milk buns"],
-  ["loaf", "Lemon drizzle loaf"],
-  ["slice", "Strawberry shortcake, sliced"],
-  ["boule", "Why our loaves open like that"],
-  ["croissant", "Laminating: fold three of three"],
-  ["baguettes", "Shaping baguettes, slowed down"],
-  ["cookies", "Oat and sour cherry cookies"],
-  ["tray", "Hot cross buns, early batch"],
-  ["starter", "How we keep the starter over a weekend off"],
-  ["loaf", "Banana bread with a burnt-sugar top"],
-  ["slice", "Chocolate layer cake for a birthday order"],
-  ["cinnamon", "Cardamom knots"],
-  ["pie", "Apple pie, lard crust vs butter crust"],
-  ["macarons", "Macaron feet: what went wrong"],
-  ["doughnut", "Custard doughnuts, piped to order"],
-];
-
 /**
- * Posts the scores should single out, by position in the feed (0 = newest)
- * and how many times the account's median views they get.
+ * Posts the scores should single out, by position in the feed (0 = newest),
+ * how many times the account's median views they get, and their cover.
  */
 export const OUTLIERS = new Map([
-  [7, { score: 7.8, topic: ["croissant", "Croissant cross-section: 27 layers of butter"] }],
-  [15, { score: 5.3, topic: ["boule", "Scoring a country boule, four ways"] }],
-  [11, { score: 3.6, topic: ["cinnamon", "The cinnamon bun pull"] }],
-  [30, { score: 2.7, topic: ["doughnut", "Friday doughnuts"] }],
-  [4, { score: 2.2, topic: ["macarons", "Pistachio macarons, take two"] }],
+  [7, { score: 7.8, cover: "open-feed-sorter-2" }],
+  [15, { score: 5.3, cover: "siti-scroll" }],
+  [11, { score: 3.6, cover: "sicurezza-per-tutti" }],
+  [30, { score: 2.7, cover: "nvidia-api" }],
+  [4, { score: 2.2, cover: "dashboard-finanze" }],
 ]);
 
-/** The same bakery on TikTok, where different posts took off. */
+/** The same account on TikTok, where different posts took off. */
 export const TIKTOK_OUTLIERS = new Map([
-  [11, { score: 8.4, topic: ["cinnamon", "The cinnamon bun pull"] }],
-  [7, { score: 6.1, topic: ["croissant", "Croissant cross-section: 27 layers of butter"] }],
-  [19, { score: 3.3, topic: ["baguettes", "Morning bake: sixty baguettes before 7am"] }],
-  [30, { score: 2.4, topic: ["doughnut", "Friday doughnuts"] }],
-  [26, { score: 2.1, topic: ["pie", "Lattice cherry pie, start to finish"] }],
+  [11, { score: 8.4, cover: "ai-websites" }],
+  [7, { score: 6.1, cover: "open-feed-sorter-2" }],
+  [19, { score: 3.3, cover: "humanizer" }],
+  [30, { score: 2.4, cover: "vibe-coding-sicuro" }],
+  [26, { score: 2.1, cover: "freellmapi" }],
 ]);
 
 /**
- * Two posts that people talked about more than they watched: a naming
- * contest and a Q&A. They are what makes "Most comments" a different order.
+ * Two posts that people commented on more than they watched: each asks for a
+ * comment to get the prompts. They are what makes "Most comments" a different
+ * order.
  */
 const CHATTY = new Map([
-  [9, { comments: 612, topic: ["loaf", "Name our new sourdough. Best name wins a loaf a week for a month"] }],
-  [21, { comments: 348, topic: ["starter", "Ask us anything about starters"] }],
+  [9, { comments: 612, cover: "professional-pics", caption: "Foto pro senza fotografo. Commenta FOTO e ti mando i prompt" }],
+  [21, { comments: 348, cover: "professional-pics-broll", caption: "6 prompt per foto LinkedIn e CV. Commenta PROMPT" }],
 ]);
+
+/**
+ * How many tiles one screenshot can show. Posts that can appear on the same
+ * screen get different covers.
+ */
+const SCREEN = 16;
+
+/**
+ * The sets of posts a screenshot can show together: the feed as it loads,
+ * newest first, and the top of each sort a shot uses, over the whole feed
+ * and over a 50-post run.
+ */
+function screens(list) {
+  const top = (field, from = list) => from.slice().sort((a, b) => b[field] - a[field]).slice(0, SCREEN);
+  return [list.slice(0, SCREEN), top("views"), top("views", list.slice(0, 50)), top("comments")];
+}
+
+/**
+ * Give every post a cover. Outliers and the chatty posts get the one named
+ * above; every other post on a screen gets the first cover in COVERS that no
+ * post on its screens has yet. Posts no shot shows take covers in turn.
+ */
+function assignCovers(list) {
+  const near = new Map(list.map((post) => [post, new Set()]));
+  for (const screen of screens(list)) {
+    for (const post of screen) for (const other of screen) if (other !== post) near.get(post).add(other);
+  }
+
+  const cover = new Map();
+  for (const post of list) if (post.cover) cover.set(post, post.cover);
+
+  for (const post of list) {
+    if (cover.has(post) || near.get(post).size === 0) continue;
+    const taken = new Set([...near.get(post)].map((other) => cover.get(other)));
+    const free = COVERS.find(({ slug }) => !taken.has(slug));
+    if (!free) throw new Error(`fixture: no cover left for post ${post.index}; add covers or shrink SCREEN`);
+    cover.set(post, free.slug);
+  }
+
+  for (const post of list) {
+    const slug = cover.get(post) ?? COVERS[post.index % COVERS.length].slug;
+    post.image = coverUrl(slug);
+    post.caption ??= COVERS.find((c) => c.slug === slug).caption;
+  }
+}
 
 /** Views a typical post settles at. The real median comes out near this. */
 const TYPICAL_VIEWS = 11800;
@@ -123,7 +155,6 @@ export function posts(count = 100, { seed = 7, typicalViews = TYPICAL_VIEWS, out
 
     const outlier = outliers.get(i);
     const chatty = CHATTY.get(i);
-    const [motif, caption] = outlier?.topic || chatty?.topic || TOPICS[(i * 7 + 3) % TOPICS.length];
 
     let views = lognormal(rand, typicalViews, 0.28);
     // Fresh posts have not finished collecting views.
@@ -135,15 +166,14 @@ export function posts(count = 100, { seed = 7, typicalViews = TYPICAL_VIEWS, out
 
     list.push({
       index: i,
-      motif,
-      caption,
+      cover: outlier?.cover ?? chatty?.cover ?? null,
+      caption: chatty?.caption ?? null,
       createdAtMs,
       views,
       likeRate,
       commentRate,
       outlierScore: outlier?.score ?? null,
       comments: chatty?.comments ?? null,
-      seed: seed * 1000 + i,
     });
 
     t -= (1.1 + rand() * 0.9) * DAY;
@@ -166,9 +196,9 @@ export function posts(count = 100, { seed = 7, typicalViews = TYPICAL_VIEWS, out
     post.comments ??= Math.max(2, round(post.likes * post.commentRate * (post.outlierScore ? 1.3 : 1), 1));
     post.shares = Math.max(1, round(post.views * (0.004 + rand() * 0.006), 1));
     post.saves = Math.max(1, round(post.views * (0.006 + rand() * 0.01), 1));
-    post.image = thumbnail({ motif: post.motif, seed: post.seed });
   }
 
+  assignCovers(list);
   return list;
 }
 

@@ -28,16 +28,23 @@ asks for. The generator checks every file it writes from the file's bytes: the
 PNG signature, every chunk CRC, and the width, height, bit depth and colour
 type in IHDR. Each run ends with a table of the results.
 
-## All data is fictional
+## Real pictures, invented numbers
 
-- **Crumbwell Bakery** (`@crumbwell.bakery`) is not a real account. Its posts,
-  captions, dates and counts come from `store/harness/fixture.js`, which uses a
-  fixed seed.
-- The thumbnails are flat SVG shapes that `store/harness/thumbs.js` generates.
-  There are no photos, no faces and no images of real posts.
+- The profile is the maintainer's own: **Dori ~ Intelligenza Artificiale**
+  (`@intelligenza_artificiale_dori`), with the maintainer's profile photo.
+- The thumbnails are the covers of the maintainer's own videos, in
+  `store/harness/covers/`, each cropped to its centre 3:4 and saved at
+  360×480. `store/harness/covers.js` lists them with their titles. They come
+  from the maintainer's video project; to add one, crop it the same way and
+  add it to that list.
+- **Every number is invented.** Each post's views, likes, comments, shares,
+  saves and date, the order of the feed, and the profile's post, follower and
+  following counts come from `store/harness/fixture.js`, which uses a fixed
+  seed. The profile header says "Sample numbers".
+- Posts that can appear on one screen never share a cover; `fixture.js`
+  assigns them.
 - The profile page around the extension is a plain greyscale page. It uses no
-  logo, colour, icon or layout from Instagram or TikTok. The profile header
-  says "Fictional demo account".
+  logo, colour, icon or layout from Instagram or TikTok.
 - The popup names the platform in plain text ("Instagram · Reels"), because the
   real popup does that. No logos are used.
 
@@ -65,7 +72,7 @@ the same way it runs on a real profile:
 
 The popup is the real `src/popup/popup.html`, `popup.css` and `popup.js`. It
 runs in an iframe beside the page. Its context line
-("Instagram · Reels · @crumbwell.bakery") is the answer from the content
+("Instagram · Reels · @intelligenza_artificiale_dori") is the answer from the content
 script in the page.
 
 These parts were changed for the harness:

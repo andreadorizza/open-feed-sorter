@@ -15,7 +15,7 @@
 import instagram from "../../src/adapters/instagram.js";
 import tiktok from "../../src/adapters/tiktok.js";
 
-export const PROFILE = "crumbwell.bakery";
+export const PROFILE = "intelligenza_artificiale_dori";
 
 export const PLATFORM =
   typeof location !== "undefined" && new URLSearchParams(location.search).get("platform") === "tiktok"

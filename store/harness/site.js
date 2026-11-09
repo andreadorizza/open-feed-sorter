@@ -25,7 +25,7 @@
  */
 
 import { ACCOUNT } from "./fixture.js";
-import { avatar } from "./thumbs.js";
+import { AVATAR_URL } from "./covers.js";
 
 const params = new URLSearchParams(location.search);
 const PLATFORM = params.get("platform") === "tiktok" ? "tiktok" : "instagram";
@@ -67,7 +67,7 @@ function el(tag, className, html) {
 }
 
 function renderShell() {
-  const face = avatar();
+  const face = AVATAR_URL;
   document.body.innerHTML = `
     <header class="topbar">
       <div class="topbar__inner">
@@ -109,7 +109,7 @@ function renderShell() {
       </div>
       <footer class="footer">
         <p>About · Help · Press · Jobs · Privacy · Terms · Language</p>
-        <p>A fictional profile page, made for screenshots.</p>
+        <p>A stand-in profile page, made for screenshots.</p>
       </footer>
     </main>
   `;
