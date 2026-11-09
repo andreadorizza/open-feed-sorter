@@ -180,6 +180,23 @@ test("an item whose tile never renders is still collected", async () => {
   env.teardown();
 });
 
+test("a tile whose image is still loading is captured once it shows", async () => {
+  const { env, collector } = setup({ mode: "count", count: 1 });
+  const tile = env.addTile("A", { hidden: true });
+  const img = tile.querySelector("img");
+  setTimeout(() => {
+    img.style.removeProperty("visibility");
+    img.dataset.revealed = "";
+  }, 250);
+
+  collector.acceptPage(reelsPage(["A"], false));
+  const [item] = (await collector.finished()).items;
+
+  assert.ok(item.html.includes("data-revealed"), "waited for the image to show");
+  assert.ok(!item.html.includes("visibility"));
+  env.teardown();
+});
+
 test("responses that are not feed pages are ignored", async () => {
   const { env, collector } = setup({ mode: "count", count: 5 });
   assert.equal(collector.acceptPage({ data: { something_else: {} } }), false);

@@ -27,12 +27,17 @@ export function makeProfileDom({ url = "https://www.instagram.com/creator/" } = 
     dom,
     window,
     grid,
-    /** Render a tile for a code, as the platform would once its data arrives. */
-    addTile(code, { loaded = true } = {}) {
+    /**
+     * Render a tile for a code, as the platform would once its data arrives.
+     * `hidden` mounts the image the way Instagram does while it loads: real
+     * src, `visibility: hidden` until the load handler clears it.
+     */
+    addTile(code, { loaded = true, hidden = false } = {}) {
       const tile = window.document.createElement("div");
+      const style = hidden ? ` style="object-fit: cover; visibility: hidden;"` : "";
       tile.innerHTML =
         `<a href="/creator/reel/${code}/">` +
-        `<img src="${loaded ? `https://cdn/${code}.jpg` : "data:image/gif;base64,R0lGOD"}">` +
+        `<img src="${loaded ? `https://cdn/${code}.jpg` : "data:image/gif;base64,R0lGOD"}"${style}>` +
         `</a>`;
       grid.appendChild(tile);
       return tile;

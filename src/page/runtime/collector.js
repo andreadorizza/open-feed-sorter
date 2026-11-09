@@ -16,7 +16,7 @@
  * when it has gone far enough back.
  */
 
-import { waitForElement, waitForMedia } from "./dom-wait.js";
+import { waitForElement, waitForMedia, tileMarkup } from "./dom-wait.js";
 import { PendingPage, requestNextPage } from "./scroll.js";
 import { nextDelay, pause } from "./pace.js";
 import { inRange, isOlderThanRange } from "../../core/dates.js";
@@ -233,7 +233,7 @@ export class Collector {
     tile.scrollIntoView({ behavior: "auto", block: "center" });
 
     const ready = await waitForMedia(tile, { signal: this.signal, timeoutMs: 3000 });
-    return ready ? ready.outerHTML : tile.outerHTML;
+    return tileMarkup(ready || tile);
   }
 
   _emitProgress() {

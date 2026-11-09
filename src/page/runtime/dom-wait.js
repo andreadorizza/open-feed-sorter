@@ -45,11 +45,36 @@ export function hasLoadedMedia(tile) {
 
   const img = tile.querySelector("img[src]");
   const src = img?.getAttribute("src") || "";
-  if (src && !src.startsWith("data:image/gif")) return true;
+  if (src && !src.startsWith("data:image/gif")) return !isHiddenUntilLoad(img);
 
   const bgHost = tile.querySelector('[style*="background-image"]');
   const bg = bgHost?.style?.backgroundImage?.match(/url\(["']?(.*?)["']?\)/)?.[1] || "";
   return Boolean(bg) && !bg.startsWith("data:image/gif");
+}
+
+/**
+ * A real `src` is not yet a loaded image. Instagram mounts a tile's <img> with
+ * its final URL and `visibility: hidden`, and clears the style from the
+ * image's load handler, about half a second later.
+ */
+function isHiddenUntilLoad(img) {
+  return img.style?.visibility === "hidden";
+}
+
+/**
+ * The tile's markup as it looks once its media has loaded.
+ *
+ * The copy in the sorted grid has none of the platform's handlers, so an image
+ * captured while hidden for loading would stay hidden for good — a blank tile.
+ * Unhiding it is safe: the copy fetches the same URL and shows it when it
+ * arrives. The live tile is cloned first, so the platform's DOM is untouched.
+ */
+export function tileMarkup(tile) {
+  const copy = tile.cloneNode(true);
+  for (const img of copy.querySelectorAll("img[src]")) {
+    if (isHiddenUntilLoad(img)) img.style.removeProperty("visibility");
+  }
+  return copy.outerHTML;
 }
 
 /** Wait for a tile's media to load, giving up (but still returning the tile) on timeout. */
